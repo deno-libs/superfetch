@@ -1,7 +1,7 @@
 # superfetch
 
 [![GitHub Workflow Status][gh-actions-img]][github-actions]
-[![Codecov][codecov-badge]][codecov]
+[![Codecov][codecov-badge]][codecov] [![][docs-badge]][docs]
 
 [Superdeno](https://github.com/asos-craigmorten/superdeno)-like superagent testing library based on Fetch API. Ported from [node-supertest-fetch](https://github.com/jwalton/node-supertest-fetch).
 
@@ -30,3 +30,5 @@ run()
 [codecov]: https://codecov.io/gh/deno-libs/superfetch
 [github-actions]: https://github.com/deno-libs/superfetch/actions
 [codecov-badge]: https://img.shields.io/codecov/c/gh/deno-libs/superfetch?style=flat-square
+[docs-badge]: https://img.shields.io/github/v/release/deno-libs/node_http?color=yellow&label=Docs&logo=deno&style=flat-square
+[docs]: https://doc.deno.land/https/deno.land/x/node_http/mod.ts
