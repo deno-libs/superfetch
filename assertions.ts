@@ -131,7 +131,7 @@ export class BodyAssertion implements Assertion {
         actual.body = JSON.parse(textBody)
         try {
           assert.deepStrictEqual(expected.body, actual.body)
-        } catch (err) {
+        } catch {
           message = `have expected JSON body`
         }
       } catch (err) {
