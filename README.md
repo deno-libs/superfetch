@@ -30,5 +30,5 @@ run()
 [codecov]: https://codecov.io/gh/deno-libs/superfetch
 [github-actions]: https://github.com/deno-libs/superfetch/actions
 [codecov-badge]: https://img.shields.io/codecov/c/gh/deno-libs/superfetch?style=flat-square
-[docs-badge]: https://img.shields.io/github/v/release/deno-libs/node_http?color=yellow&label=Docs&logo=deno&style=flat-square
-[docs]: https://doc.deno.land/https/deno.land/x/node_http/mod.ts
+[docs-badge]: https://img.shields.io/github/v/release/deno-libs/superfetch?color=yellow&label=Docs&logo=deno&style=flat-square
+[docs]: https://doc.deno.land/https/deno.land/x/superfetch/mod.ts
