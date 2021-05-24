@@ -15,9 +15,9 @@ jobs:
       - uses: actions/checkout@v2
       - uses: denolib/setup-deno@v2
         with:
-          deno-version: v1.8
+          deno-version: v1.10.2
       - name: Create tests
-        run: deno test --unstable --coverage=coverage
+        run: deno test -A --unstable --coverage=coverage
       - name: Create coverage report
         run: deno --unstable coverage ./coverage --lcov > coverage.lcov
       - name: Collect coverage
