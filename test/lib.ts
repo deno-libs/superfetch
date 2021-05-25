@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, expect } from 'https://deno.land/x/tincan/mod.ts'
 import fetch, { makeFetch } from '../mod.ts'
-import { createServer, Server } from 'https://deno.land/x/node_http@0.0.6/mod.ts'
+import { createServer, Server } from 'https://deno.land/x/node_http@0.0.7/mod.ts'
 import { ServerRequest } from 'https://deno.land/std@0.97.0/http/server.ts'
 import { App } from 'https://deno.land/x/tinyhttp@0.1.6/app.ts'
 
