@@ -33,9 +33,11 @@ export type FetchFunction = (url: string | Request, init?: RequestInit | undefin
  * @returns - a `fetch(url, options)` function, compatible with WHATWG
  *  fetch, but which returns `Test` objects.
  */
-export function makeFetch(target: httpServer | ServerHandler): FetchFunction {
+export function makeFetch<Req extends any = any>(
+  target: httpServer | ServerHandler | ((req: Req) => void)
+): FetchFunction {
   // if we were given an express app
-  const server = typeof target === 'function' ? createServer(target) : target
+  const server = typeof target === 'function' ? createServer(target as any) : target
 
   return function fetch(url: string | Request, init?: RequestInit) {
     const pServer = Server.create(server)

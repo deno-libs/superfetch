@@ -17,7 +17,7 @@ describe('makeFetch', () => {
   it('should work with tinyhttp', async () => {
     const s = new App().use((req) => req.respond({ body: 'Hello World' }))
 
-    const fetch = makeFetch(s.attach as (req: ServerRequest) => void)
+    const fetch = makeFetch(s.attach)
 
     await fetch('/').expect('Hello World')
   })
