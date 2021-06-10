@@ -1,4 +1,4 @@
-import * as assert from 'https://deno.land/std@0.97.0/node/assert.ts'
+import * as assert from 'https://deno.land/std@0.98.0/node/assert.ts'
 
 import Server from './server.ts'
 import { Assertion, StatusAssertion, BodyAssertion, HeaderAssertion, AssertionContext } from './assertions.ts'
@@ -130,6 +130,7 @@ export default class Test implements PromiseLike<Response> {
     server.close()
 
     let message: string | undefined
+
     for (const assertion of this._assertions) {
       const assertionMessage = await assertion.execute(actual, expected, response, context)
       message = message || assertionMessage
