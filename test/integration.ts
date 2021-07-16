@@ -1,5 +1,5 @@
 import { describe, it, run } from 'https://deno.land/x/tincan@0.2.1/mod.ts'
-import { createServer } from 'https://deno.land/x/node_http@0.0.11/mod.ts'
+import { createServer } from 'https://deno.land/x/node_http@0.0.12/mod.ts'
 import { App, Request } from 'https://deno.land/x/tinyhttp@0.1.15/mod.ts'
 import { makeFetch } from '../mod.ts'
 
