@@ -1,4 +1,4 @@
-import { createServer, Server as httpServer, ServerHandler } from 'https://deno.land/x/node_http@0.0.12/mod.ts'
+import { createServer, Server as httpServer, ServerHandler } from 'https://deno.land/x/node_http@0.0.13/mod.ts'
 
 import Server from './server.ts'
 import Test from './test.ts'
