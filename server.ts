@@ -1,5 +1,5 @@
-import * as http from 'https://deno.land/x/node_http@0.0.15/mod.ts'
-import type { AddressInfo } from 'https://deno.land/x/node_http@0.0.15/mod.ts'
+import * as http from 'https://deno.land/x/node_http@0.0.16/mod.ts'
+import type { AddressInfo } from 'https://deno.land/x/node_http@0.0.16/mod.ts'
 
 export default class Server {
   readonly _server: http.Server
