@@ -1,8 +1,8 @@
-import { describe, it, beforeEach, expect, run } from 'https://deno.land/x/tincan@0.2.1/mod.ts'
+import { describe, it, beforeEach, expect, run } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
 import fetch, { makeFetch } from '../mod.ts'
 import { createServer, Server } from 'https://deno.land/x/node_http@0.0.16/mod.ts'
-import { App } from 'https://deno.land/x/tinyhttp@0.1.19/app.ts'
-import type { ServerRequest } from 'https://deno.land/std@0.106.0/http/server.ts'
+import { App } from 'https://deno.land/x/tinyhttp@0.1.24/app.ts'
+import type { ServerRequest } from 'https://deno.land/std@0.111.0/http/server.ts'
 
 let server: Server,
   closed = 0
