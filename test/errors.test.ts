@@ -1,28 +1,27 @@
 import { describe, it, run, beforeEach, expect } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
 import fetch from '../mod.ts'
-import { createServer, Server } from 'https://deno.land/x/node_http@0.0.16/mod.ts'
+import { http } from '../deps.ts'
 
-let server: Server,
+let server: http.Server,
   closed = 0
 
 describe('supertest-fetch errors', function () {
   beforeEach(() => {
-    server = createServer((req) => {
+    server = http.createServer((req, res) => {
       if (req.url === '/hello') {
-        req.respond({
-          headers: new Headers({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ greeting: 'Hello!' })
+        res.writeHead(200, {
+          'Content-Type': 'application/json'
         })
+        res.end(JSON.stringify({ greeting: 'Hello!' }))
       } else if (req.url === '/hellotext') {
-        req.respond({ body: 'Hello' })
+        res.end('Hello')
       } else if (req.url === '/err') {
-        req.respond({
-          headers: new Headers({ 'Content-Type': req.headers.get('content-type') || 'text/plain' }),
-          status: 400,
-          body: 'Boom!\nLong message\n'
+        res.writeHead(400, {
+          'Content-Type': req.headers['content-type'] || 'text/plain'
         })
+        res.end('Boom!\nLong message\n')
       } else {
-        req.respond({ status: 404 })
+        res.writeHead(404, {}).end()
       }
     })
 
@@ -31,6 +30,7 @@ describe('supertest-fetch errors', function () {
     server.close = () => {
       closed++
       origClose()
+      return server
     }
   })
 

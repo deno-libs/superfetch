@@ -1,29 +1,30 @@
 import { describe, it, beforeEach, expect, run } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
 import fetch, { makeFetch } from '../mod.ts'
-import { createServer, Server } from 'https://deno.land/x/node_http@0.0.16/mod.ts'
+import { http } from '../deps.ts'
 import { App } from 'https://deno.land/x/tinyhttp@0.1.24/app.ts'
-import type { ServerRequest } from 'https://deno.land/std@0.111.0/http/server.ts'
 
-let server: Server,
+let server: http.Server,
   closed = 0
 
 describe('superfetch', () => {
   beforeEach(() => {
-    server = createServer((req: ServerRequest) => {
+    server = http.createServer((req, res) => {
       if (req.url === '/hello') {
-        req.respond({
-          headers: new Headers({ 'content-type': 'application/json' }),
-          body: JSON.stringify({ greeting: 'Hello!' })
-        })
+        res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ greeting: 'Hello!' }))
       } else if (req.url === '/text') {
-        req.respond({ body: 'Hello!' })
+        res.end('Hello!')
       } else if (req.url === '/echo') {
-        req.respond({
-          headers: new Headers({ 'content-type': req.headers.get('content-type') || 'text/plain' }),
-          body: req.body
-        })
+        const chunks: string[] = []
+
+        req.on('data', (data) => chunks.push(data.toString()))
+
+        res
+          .writeHead(200, {
+            'content-type': req.headers['content-type'] || 'text/plain'
+          })
+          .end(chunks.join(''))
       } else {
-        req.respond({ status: 404 })
+        res.writeHead(404, {}).end()
       }
     })
 
@@ -32,6 +33,7 @@ describe('superfetch', () => {
     server.close = () => {
       closed++
       origClose()
+      return server
     }
   })
 

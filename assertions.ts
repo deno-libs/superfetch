@@ -1,4 +1,4 @@
-import * as assert from 'https://deno.land/std@0.111.0/node/assert.ts'
+import { assert } from './deps.ts'
 
 const MAX_SHORT_BODY_LENGTH = 80
 

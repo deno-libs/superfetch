@@ -1,7 +1,7 @@
-import { createServer, Server as httpServer, ServerHandler } from 'https://deno.land/x/node_http@0.0.16/mod.ts'
-
+import { http } from './deps.ts'
 import Server from './server.ts'
 import Test from './test.ts'
+import { ServerHandler } from './types.ts'
 
 export { Test }
 
@@ -17,7 +17,7 @@ export { Test }
  * @returns - a Test, which is like a Promise<Response>, but it also
  *   has 'exepect' methods on it.
  */
-export default function fetch(server: httpServer, url: string | Request, init?: RequestInit): Test {
+export default function fetch(server: http.Server, url: string | Request, init?: RequestInit): Test {
   const pServer = Server.create(server)
   return new Test(pServer, url, init)
 }
@@ -34,10 +34,10 @@ export type FetchFunction = (url: string | Request, init?: RequestInit | undefin
  *  fetch, but which returns `Test` objects.
  */
 export function makeFetch<Req extends any = any>(
-  target: httpServer | ServerHandler | ((req: Req) => void)
+  target: http.Server | ServerHandler | ((req: Req) => void)
 ): FetchFunction {
   // if we were given an express app
-  const server = typeof target === 'function' ? createServer(target as any) : target
+  const server = typeof target === 'function' ? http.createServer(target as any) : target
 
   return function fetch(url: string | Request, init?: RequestInit) {
     const pServer = Server.create(server)
