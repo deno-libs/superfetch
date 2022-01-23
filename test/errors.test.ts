@@ -1,8 +1,9 @@
 import { describe, it, run, beforeEach, expect } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
 import fetch from '../mod.ts'
 import { http } from '../deps.ts'
+import { DenoStdNodeServer } from '../types.ts'
 
-let server: http.Server,
+let server: DenoStdNodeServer,
   closed = 0
 
 describe('supertest-fetch errors', function () {

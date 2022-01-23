@@ -2,8 +2,9 @@ import { describe, it, beforeEach, expect, run } from 'https://deno.land/x/tinca
 import fetch, { makeFetch } from '../mod.ts'
 import { http } from '../deps.ts'
 import { App } from 'https://deno.land/x/tinyhttp@0.1.24/app.ts'
+import { DenoStdNodeServer } from '../types.ts'
 
-let server: http.Server,
+let server: DenoStdNodeServer,
   closed = 0
 
 describe('superfetch', () => {
