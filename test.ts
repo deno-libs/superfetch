@@ -1,4 +1,4 @@
-import * as assert from 'https://deno.land/std@0.130.0/node/assert.ts'
+import * as assert from 'https://deno.land/std@0.151.0/node/assert.ts'
 
 import Server from './server.ts'
 import { Assertion, StatusAssertion, BodyAssertion, HeaderAssertion, AssertionContext } from './assertions.ts'

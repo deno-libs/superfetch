@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, expect, run } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
+import { describe, it, beforeEach, expect, run } from 'https://deno.land/x/tincan@1.0.1/mod.ts'
 import fetch, { makeFetch } from '../mod.ts'
 import { http } from '../deps.ts'
 import { App } from 'https://deno.land/x/tinyhttp@0.1.24/app.ts'

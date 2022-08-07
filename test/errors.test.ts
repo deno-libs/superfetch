@@ -1,4 +1,4 @@
-import { describe, it, run, beforeEach, expect } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
+import { describe, it, run, beforeEach, expect } from 'https://deno.land/x/tincan@1.0.1/mod.ts'
 import fetch from '../mod.ts'
 import { http } from '../deps.ts'
 import { DenoStdNodeServer } from '../types.ts'
@@ -62,7 +62,7 @@ describe('supertest-fetch errors', function () {
     } catch (err) {
       expect(err.message).toEqual(
         'Request "GET /hellotext" should have JSON body but ' +
-          'body could not be parsed: SyntaxError: Unexpected token H in JSON at position 0'
+          'body could not be parsed: SyntaxError: Unexpected token \'H\', "Hello" is not valid JSON'
       )
     }
   })
