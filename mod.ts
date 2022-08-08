@@ -27,7 +27,7 @@ export type FetchFunction = (url: string | Request, init?: RequestInit | undefin
 /**
  * Creates a `fetch` function for a server.
  *
- * @param server - The server to fetch from.  If the server is not already
+ * @param target - The server to fetch from.  If the server is not already
  * listening, th server will be started before each call to `fetch()`, and
  * closed after each call.
  * @returns - a `fetch(url, options)` function, compatible with WHATWG
