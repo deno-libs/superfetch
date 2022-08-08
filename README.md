@@ -9,7 +9,7 @@
 
 ```ts
 import { describe, it, run } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
-import { http } from 'https://deno.land/std@0.106.0/node/http.ts'
+import { http } from 'https://deno.land/std@0.151.0/node/http.ts'
 import { makeFetch } from '../mod.ts'
 
 describe('makeFetch', () => {

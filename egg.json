@@ -8,7 +8,11 @@
   "releaseType": null,
   "unstable": false,
   "unlisted": false,
-  "files": ["./**/*.ts", "README.md", "LICENSE"],
+  "files": [
+    "./**/*.ts",
+    "README.md",
+    "LICENSE"
+  ],
   "ignore": [],
   "checkFormat": false,
   "checkTests": "deno test --allow-net",
