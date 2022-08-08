@@ -53,11 +53,16 @@ export class StatusAssertion implements Assertion {
     this._text = statusText
   }
 
-  canAdd(expected: any) {
+  canAdd(expected: { status?: number }) {
     return !('status' in expected) || expected.status === this._code
   }
 
-  async execute(actual: any, expected: any, response: Response, context: AssertionContext) {
+  async execute(
+    actual: { status?: number | string; body?: string },
+    expected: { status?: number | string },
+    response: Response,
+    context: AssertionContext
+  ) {
     expected.status = typeof this._text === 'string' ? `${this._code} - ${this._text}` : `${this._code}`
     actual.status =
       typeof this._text === 'string' ? `${response.status} - ${response.statusText}` : `${response.status}`
@@ -98,11 +103,16 @@ export class BodyAssertion implements Assertion {
     this._expectedBody = expected
   }
 
-  canAdd(expected: any) {
+  canAdd(expected: { body?: string }) {
     return !('body' in expected) || expected.body === this._expectedBody
   }
 
-  async execute(actual: any, expected: any, response: Response, context: AssertionContext) {
+  async execute(
+    actual: { body?: string; headers?: Record<string, string | null> },
+    expected: { body?: string; headers?: Record<string, string | null> },
+    response: Response,
+    context: AssertionContext
+  ) {
     let message: string | undefined
 
     if (typeof this._expectedBody === 'string') {
@@ -173,7 +183,11 @@ export class HeaderAssertion implements Assertion {
     return true
   }
 
-  execute(actual: any, expected: any, response: Response) {
+  execute(
+    actual: { headers?: Record<string, string | null> },
+    expected: { headers?: Record<string, string | null> },
+    response: Response
+  ) {
     actual.headers = actual.headers || {}
     expected.headers = expected.headers || {}
 

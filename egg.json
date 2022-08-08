@@ -1,0 +1,20 @@
+{
+  "$schema": "https://x.nest.land/eggs@0.3.10/src/schema.json",
+  "name": "superfetch",
+  "entry": "./mod.ts",
+  "description": "🐕 Superdeno-like superagent testing library based on Fetch API. Ported from node-supertest-fetch.",
+  "homepage": "https://github.com/deno-libs/superfetch",
+  "version": "0.1.5",
+  "releaseType": null,
+  "unstable": false,
+  "unlisted": false,
+  "files": [
+    "./**/*.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "ignore": [],
+  "checkFormat": false,
+  "checkTests": "deno test --allow-net",
+  "check": true
+}
