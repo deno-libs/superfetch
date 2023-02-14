@@ -24,9 +24,9 @@ describe('makeFetch', () => {
 run()
 ```
 
-[gh-actions-img]: https://img.shields.io/github/workflow/status/deno-libs/superfetch/CI?style=flat-square
+[gh-actions-img]: https://img.shields.io/github/actions/workflow/status/deno-libs/superfetch/main.yml?branch=master&style=for-the-badge&logo=github
 [codecov]: https://codecov.io/gh/deno-libs/superfetch
 [github-actions]: https://github.com/deno-libs/superfetch/actions
-[codecov-badge]: https://img.shields.io/codecov/c/gh/deno-libs/superfetch?style=flat-square
-[docs-badge]: https://img.shields.io/github/v/release/deno-libs/superfetch?color=yellow&label=Docs&logo=deno&style=flat-square
+[codecov-badge]: https://img.shields.io/codecov/c/gh/deno-libs/superfetch?style=for-the-badge
+[docs-badge]: https://img.shields.io/github/v/release/deno-libs/superfetch?color=yellow&label=Docs&logo=deno&style=for-the-badge
 [docs]: https://doc.deno.land/https/deno.land/x/superfetch/mod.ts
