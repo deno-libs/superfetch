@@ -92,4 +92,25 @@ describe('expectHeader', () => {
   })
 })
 
+describe('expectBody', () => {
+  it('passes with correct body', async () => {
+    const handler: Handler = () => new Response('Hello World')
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expectBody('Hello World')
+  })
+  it('throws on incorrect body', async () => {
+    const handler: Handler = () => new Response('Hello World')
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    try {
+      res.expectBody('Hello World?')
+    } catch (e) {
+      expect((e as Error).message).toMatch(
+        'Expected to have body Hello World?, got Hello World',
+      )
+    }
+  })
+})
+
 run()
