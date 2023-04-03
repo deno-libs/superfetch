@@ -1,47 +1,137 @@
-import { http } from './deps.ts'
-import Server from './server.ts'
-import Test from './test.ts'
-import { DenoStdNodeServer, ServerHandler } from './types.ts'
+import { assertEquals, assertMatch, getFreePort } from './deps.ts'
+import { HandlerOrListener } from './types.ts'
 
-export { Test }
+const port = await getFreePort(8080)
 
-/**
- * Fetch a resource from a server, returns a Test.
- *
- * @param server - The server to fetch from.  If the server is not already
- * listening, this function will start it listening and then will close the
- * server at the end of the test.
- * @param url - A Request or a string representing a relative URL.  Same as
- * WHATWG Fetch.  URL should be relative to the server (e.g. '/foo/bar').
- * @param options - Same as WHATWG Fetch.
- * @returns - a Test, which is like a Promise<Response>, but it also
- *   has 'exepect' methods on it.
- */
-export default function fetch(server: DenoStdNodeServer, url: string | Request, init?: RequestInit): Test {
-  const pServer = Server.create(server)
-  return new Test(pServer, url, init)
+const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
+  // listener
+  if ('rid' in handlerOrListener && 'addr' in handlerOrListener) {
+    return async (url: URL | string = '', params?: RequestInit) => {
+      const p = new Promise<{ res: Response; data?: any }>((resolve) => {
+        setTimeout(async () => {
+          const res = await fetch(
+            `http://localhost:${port}${url}`,
+            params,
+          )
+          const data = res.headers.get('Content-Type') === 'application/json'
+            ? await res.json()
+            : await res.text()
+
+          resolve({ res, data })
+          Deno.close(conn.rid + 1)
+          handlerOrListener.close()
+        })
+      })
+      const conn = await handlerOrListener.accept()
+      return p
+    }
+  } // (req, conn) => Response listener
+  else {
+    const listener = Deno.listen({ port, hostname: 'localhost' })
+
+    const serve = async (conn: Deno.Conn) => {
+      const requests = Deno.serveHttp(conn)
+      const { request, respondWith } = (await requests.nextRequest())!
+      const response = await handlerOrListener(request, conn)
+      if (response) {
+        respondWith(response)
+      }
+    }
+
+    return async (url: URL | string = '', params?: RequestInit) => {
+      const p = new Promise<{ res: Response; data?: any }>((resolve) => {
+        setTimeout(async () => {
+          const res = await fetch(
+            `http://localhost:${port}${url}`,
+            params,
+          )
+          const data = res.headers.get('Content-Type') === 'application/json'
+            ? await res.json()
+            : await res.text()
+
+          resolve({ res, data })
+          Deno.close(conn.rid + 1)
+          listener.close()
+        })
+      })
+      const conn = await listener.accept()
+      await serve(conn)
+      return p
+    }
+  }
 }
 
-export type FetchFunction = (url: string | Request, init?: RequestInit | undefined) => Test
+export const makeFetch = (h: HandlerOrListener) => {
+  const resp = makeFetchPromise(h)
+  async function fetch(url: string | URL, options?: RequestInit) {
+    const { data, res } = await resp(url, options)
+    const expectStatus = (a: number, b?: string) => {
+      assertEquals(
+        res.status,
+        a,
+        `expected to have status code ${a} but was ${res.status}`,
+      )
+      if (typeof b !== 'undefined') {
+        assertEquals(res.statusText, b)
+      }
+      return {
+        expect: expectAll,
+        expectStatus,
+        expectHeader,
+        expectBody,
+      }
+    }
+    const expectHeader = (a: string, b: string | RegExp | null) => {
+      const header = res.headers.get(a)
+      if (b instanceof RegExp) {
+        if (header === null) {
+          throw new Error(`expected header ${header} to not be empty`)
+        }
+        assertMatch(
+          header,
+          b,
+          `expected header ${a} to match regexp ${b}, got ${header}`,
+        )
+      } else {
+        assertEquals(
+          header,
+          b,
+          `expected to have header ${a} with value ${b}, got ${header}`,
+        )
+      }
+      return {
+        expect: expectAll,
+        expectStatus,
+        expectHeader,
+        expectBody,
+      }
+    }
+    const expectBody = (a: any) => {
+      assertEquals(data, a, `Expected to have body ${a}, got ${data}`)
+    }
 
-/**
- * Creates a `fetch` function for a server.
- *
- * @param target - The server to fetch from.  If the server is not already
- * listening, th server will be started before each call to `fetch()`, and
- * closed after each call.
- * @returns - a `fetch(url, options)` function, compatible with WHATWG
- *  fetch, but which returns `Test` objects.
- */
-export function makeFetch<Req extends any = any>(
-  target: DenoStdNodeServer | ServerHandler | ((req: Req) => void)
-): FetchFunction {
-  // if we were given an express app
-  const server = typeof target === 'function' ? http.createServer(target as any) : target
+    const expectAll = (a: any, b?: any) => {
+      if (typeof a === 'number') {
+        expectStatus(a, b)
+      } else if (typeof a === 'string' && typeof b !== 'undefined') {
+        expectHeader(a, b)
+      } else {
+        expectBody(a)
+      }
+      return {
+        expect: expectAll,
+        expectStatus,
+        expectHeader,
+        expectBody,
+      }
+    }
 
-  return function fetch(url: string | Request, init?: RequestInit) {
-    const pServer = Server.create(server)
-
-    return new Test(pServer, url, init)
+    return {
+      expect: expectAll,
+      expectStatus,
+      expectHeader,
+      expectBody,
+    }
   }
+  return fetch
 }

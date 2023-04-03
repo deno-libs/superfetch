@@ -12,15 +12,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
       - name: Create tests
-        run: deno test -A --unstable --coverage=coverage
+        run: deno test -A --coverage=coverage
       - name: Create coverage report
-        run: deno --unstable coverage ./coverage --lcov > coverage.lcov
+        run: deno coverage ./coverage --lcov > coverage.lcov
       - name: Collect coverage
-        uses: codecov/codecov-action@v1.5.0
+        uses: codecov/codecov-action
         with:
           file: ./coverage.lcov

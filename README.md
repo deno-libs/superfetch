@@ -3,22 +3,24 @@
 [![GitHub Workflow Status][gh-actions-img]][github-actions]
 [![Codecov][codecov-badge]][codecov] [![][docs-badge]][docs]
 
-[Superdeno](https://github.com/asos-craigmorten/superdeno)-like superagent testing library based on Fetch API. Ported from [node-supertest-fetch](https://github.com/jwalton/node-supertest-fetch).
+HTTP Server testing library inspired by [node-supertest-fetch](https://github.com/jwalton/node-supertest-fetch).
 
 ## Example
 
 ```ts
-import { describe, it, run } from 'https://deno.land/x/tincan@1.0.0/mod.ts'
-import { http } from 'https://deno.land/std@0.151.0/node/http.ts'
-import { makeFetch } from 'https://x.nest.land/superfetch@0.1.6/mod.ts'
+import { describe, it, run } from 'https://deno.land/x/tincan/mod.ts'
+import { makeFetch } from 'https://x.nest.land/superfetch@1.0.0/mod.ts'
+import type { Handler } from 'https://deno.land/std@0.182.0/http/server.ts'
 
 describe('makeFetch', () => {
-  it('should work with std/http', async () => {
-    const s = http.createServer((req, res) => res.end('Hello World'))
+  it('should work with HTTP handler', async () => {
+    const handler: Handler = (res) => new Response('Hello World')
 
     const fetch = makeFetch(s)
 
-    await fetch('/').expect('Hello World')
+    const res = await fetch('/')
+    
+    res.expect('Hello World')
   })
 
 run()
