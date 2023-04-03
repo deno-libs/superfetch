@@ -113,4 +113,28 @@ describe('expectBody', () => {
   })
 })
 
+describe('expect', () => {
+  it('uses expectStatus if first arg is number', async () => {
+    const handler: Handler = () => new Response('Hello World')
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expect(200)
+  })
+  it('uses expectHeader if two arguments', async () => {
+    const handler: Handler = () =>
+      new Response('Hello World', {
+        'headers': { 'Content-Type': 'text/plain' },
+      })
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expect('Content-Type', 'text/plain')
+  })
+  it('uses expectBody otherwise', async () => {
+    const handler: Handler = () => new Response('Hello World')
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expect('Hello World')
+  })
+})
+
 run()
