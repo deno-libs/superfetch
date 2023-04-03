@@ -33,7 +33,7 @@ describe('expectStatus', () => {
     const res = await fetch('/')
 
     try {
-      res.expectStatus(404, 'OK')
+      res.expectStatus(404)
     } catch (e) {
       expect(e instanceof AssertionError).toBe(true)
       expect((e as Error).message).toMatch('Values are not equal: expected to have status code 404 but was 200')
