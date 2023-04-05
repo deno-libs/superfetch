@@ -4,7 +4,7 @@
   "entry": "./mod.ts",
   "description": "🐕 Superdeno-like superagent testing library based on Fetch API. Ported from node-supertest-fetch.",
   "homepage": "https://github.com/deno-libs/superfetch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "releaseType": "patch",
   "unstable": false,
   "unlisted": false,
@@ -15,7 +15,7 @@
   ],
   "ignore": [],
   "checkFormat": true,
-  "checkTests": "deno test --allow-net",
+  "checkTests": "deno test --allow-net --allow-read",
   "check": true,
   "checkAll": true,
   "repository": "https://github.com/deno-libs/superfetch"
