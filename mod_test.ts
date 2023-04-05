@@ -16,6 +16,24 @@ describe('makeFetch', () => {
 
     res.expect('Hello World')
   })
+  it('should parse JSON if response is JSON', async () => {
+    const handler: Handler = () =>
+      new Response(JSON.stringify({ hello: 'world' }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+
+    res.expect({ hello: 'world' })
+  })
+  it('should fallback to arraybuffer', async () => {
+    const file = await Deno.readFile('README.md')
+    const handler: Handler = () => new Response(file)
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+
+    res.expect(file.buffer)
+  })
 })
 describe('expectStatus', () => {
   it('should pass with a correct status', async () => {

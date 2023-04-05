@@ -13,9 +13,11 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
             `http://localhost:${port}${url}`,
             params,
           )
-          const data = res.headers.get('Content-Type') === 'application/json'
-            ? await res.json()
-            : await res.text()
+          let data: unknown
+          const ct = res.headers.get('Content-Type')
+          if (ct === 'application/json') data = await res.json()
+          else if (ct?.includes('text')) data = await res.text()
+          else data = await res.arrayBuffer()
 
           resolve({ res, data })
           Deno.close(conn.rid + 1)
@@ -45,9 +47,11 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
             `http://localhost:${port}${url}`,
             params,
           )
-          const data = res.headers.get('Content-Type') === 'application/json'
-            ? await res.json()
-            : await res.text()
+          let data: unknown
+          const ct = res.headers.get('Content-Type')
+          if (ct === 'application/json') data = await res.json()
+          else if (ct?.includes('text')) data = await res.text()
+          else data = await res.arrayBuffer()
 
           resolve({ res, data })
           Deno.close(conn.rid + 1)
