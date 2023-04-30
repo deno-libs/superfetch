@@ -1,19 +1,12 @@
 {
   "fmt": {
-    "options": {
-      "useTabs": false,
-      "lineWidth": 80,
-      "indentWidth": 2,
-      "singleQuote": true,
-      "semiColons": false
-    }
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "singleQuote": true,
+    "semiColons": false
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --coverage=coverage"
-  },
-  "test": {
-    "files":{
-      "exclude": ["./tests/util.ts"]
-    }
   }
 }

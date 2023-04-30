@@ -108,6 +108,13 @@ describe('expectHeader', () => {
       )
     }
   })
+  it('can expect array of header values', async () => {
+    const handler: Handler = () =>
+      new Response('Hello World', { headers: { 'A': '1,2,3' } })
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expectHeader('A', ['1', '2', '3'])
+  })
 })
 
 describe('expectBody', () => {

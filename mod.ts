@@ -7,7 +7,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   // listener
   if ('rid' in handlerOrListener && 'addr' in handlerOrListener) {
     return async (url: URL | string = '', params?: RequestInit) => {
-      const p = new Promise<{ res: Response; data?: any }>((resolve) => {
+      const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
           const res = await fetch(
             `http://localhost:${port}${url}`,
@@ -41,7 +41,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
     }
 
     return async (url: URL | string = '', params?: RequestInit) => {
-      const p = new Promise<{ res: Response; data?: any }>((resolve) => {
+      const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
           const res = await fetch(
             `http://localhost:${port}${url}`,
@@ -85,15 +85,23 @@ export const makeFetch = (h: HandlerOrListener) => {
         expectBody,
       }
     }
-    const expectHeader = (a: string, b: string | RegExp | null) => {
+    const expectHeader = (a: string, b: string | RegExp | null | string[]) => {
       const header = res.headers.get(a)
+      if (header === null) {
+        throw new Error(`expected header ${header} to not be empty`)
+      }
       if (b instanceof RegExp) {
-        if (header === null) {
-          throw new Error(`expected header ${header} to not be empty`)
-        }
         assertMatch(
           header,
           b,
+          `expected header ${a} to match regexp ${b}, got ${header}`,
+        )
+      } else if (
+        Array.isArray(b)
+      ) {
+        assertEquals(
+          header,
+          b.join(','),
           `expected header ${a} to match regexp ${b}, got ${header}`,
         )
       } else {
@@ -110,11 +118,11 @@ export const makeFetch = (h: HandlerOrListener) => {
         expectBody,
       }
     }
-    const expectBody = (a: any) => {
+    const expectBody = (a: unknown) => {
       assertEquals(data, a, `Expected to have body ${a}, got ${data}`)
     }
 
-    const expectAll = (a: any, b?: any) => {
+    const expectAll = (a: unknown, b?: any) => {
       if (typeof a === 'number') {
         expectStatus(a, b)
       } else if (typeof a === 'string' && typeof b !== 'undefined') {
