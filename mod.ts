@@ -112,7 +112,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         assertEquals(
           header,
           b,
-          `expected to have header ${a} ${header === null ? 'empty' : 'with value ${b}, got ${header}'}`,
+          `expected to have header ${a} ${header === null ? 'empty' : `with value ${b}, got ${header}`}`,
         )
       }
       return {
