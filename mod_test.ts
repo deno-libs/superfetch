@@ -8,6 +8,8 @@ import { makeFetch } from './mod.ts'
 import { Handler } from './types.ts'
 import { AssertionError } from 'https://deno.land/std@0.182.0/testing/asserts.ts'
 
+const tw = new TextDecoder()
+
 describe('makeFetch', () => {
   it('should work with HTTP handler', async () => {
     const handler: Handler = () => new Response('Hello World')
@@ -28,11 +30,18 @@ describe('makeFetch', () => {
   })
   it('should fallback to arraybuffer', async () => {
     const file = await Deno.readFile('README.md')
-    const handler: Handler = () => new Response(file)
+    const handler: Handler = () => new Response(file,{headers: {'Content-Type': 'text/markdown'}})
     const fetch = makeFetch(handler)
     const res = await fetch('/')
 
-    res.expect(file.buffer)
+    res.expect(tw.decode(file))
+  })
+  it('should return empty response if content-type is null', async () => {
+    const handler: Handler = () => new Response(null)
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+
+    res.expect('')
   })
 })
 describe('expectStatus', () => {

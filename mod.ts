@@ -3,22 +3,31 @@ import { HandlerOrListener } from './types.ts'
 
 const port = await getFreePort(8080)
 
+const fetchEndpoint = async (
+  port: number,
+  url: string | URL,
+  params?: RequestInit,
+) => {
+  const res = await fetch(
+    `http://localhost:${port}${url}`,
+    params,
+  )
+  let data: unknown
+  const ct = res.headers.get('Content-Type')
+  if (ct === 'application/json') data = await res.json()
+  else if (ct?.includes('text')) data = await res.text()
+  else if (ct === null) data = await res.text()
+  else data = await res.arrayBuffer()
+  return { res, data }
+}
+
 const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   // listener
   if ('rid' in handlerOrListener && 'addr' in handlerOrListener) {
     return async (url: URL | string = '', params?: RequestInit) => {
       const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
-          const res = await fetch(
-            `http://localhost:${port}${url}`,
-            params,
-          )
-          let data: unknown
-          const ct = res.headers.get('Content-Type')
-          if (ct === 'application/json') data = await res.json()
-          else if (ct?.includes('text')) data = await res.text()
-          else data = await res.arrayBuffer()
-
+          const { res, data } = await fetchEndpoint(port, url, params)
           resolve({ res, data })
           Deno.close(conn.rid + 1)
           handlerOrListener.close()
@@ -43,16 +52,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
     return async (url: URL | string = '', params?: RequestInit) => {
       const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
-          const res = await fetch(
-            `http://localhost:${port}${url}`,
-            params,
-          )
-          let data: unknown
-          const ct = res.headers.get('Content-Type')
-          if (ct === 'application/json') data = await res.json()
-          else if (ct?.includes('text')) data = await res.text()
-          else data = await res.arrayBuffer()
-
+          const { res, data } = await fetchEndpoint(port, url, params)
           resolve({ res, data })
           Deno.close(conn.rid + 1)
           listener.close()
@@ -87,7 +87,7 @@ export const makeFetch = (h: HandlerOrListener) => {
     }
     const expectHeader = (a: string, b: string | RegExp | null | string[]) => {
       const header = res.headers.get(a)
-     
+
       if (b instanceof RegExp) {
         if (header === null) {
           throw new Error(`expected header ${header} to not be empty`)
@@ -112,7 +112,9 @@ export const makeFetch = (h: HandlerOrListener) => {
         assertEquals(
           header,
           b,
-          `expected to have header ${a} ${header === null ? 'empty' : `with value ${b}, got ${header}`}`,
+          `expected to have header ${a} ${
+            header === null ? 'empty' : `with value ${b}, got ${header}`
+          }`,
         )
       }
       return {
