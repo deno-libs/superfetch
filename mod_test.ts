@@ -115,6 +115,13 @@ describe('expectHeader', () => {
     const res = await fetch('/')
     res.expectHeader('A', ['1', '2', '3'])
   })
+  it('expects if header is not present', async ()=> {
+    const handler: Handler = () =>
+      new Response('Hello World')
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expectHeader('A', null)
+  })
 })
 
 describe('expectBody', () => {
