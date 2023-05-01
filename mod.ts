@@ -87,10 +87,11 @@ export const makeFetch = (h: HandlerOrListener) => {
     }
     const expectHeader = (a: string, b: string | RegExp | null | string[]) => {
       const header = res.headers.get(a)
-      if (header === null) {
-        throw new Error(`expected header ${header} to not be empty`)
-      }
+     
       if (b instanceof RegExp) {
+        if (header === null) {
+          throw new Error(`expected header ${header} to not be empty`)
+        }
         assertMatch(
           header,
           b,
@@ -99,6 +100,9 @@ export const makeFetch = (h: HandlerOrListener) => {
       } else if (
         Array.isArray(b)
       ) {
+        if (header === null) {
+          throw new Error(`expected header ${header} to not be empty`)
+        }
         assertEquals(
           header,
           b.join(','),
@@ -108,7 +112,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         assertEquals(
           header,
           b,
-          `expected to have header ${a} with value ${b}, got ${header}`,
+          `expected to have header ${a} ${header === null ? 'empty' : 'with value ${b}, got ${header}'}`,
         )
       }
       return {
