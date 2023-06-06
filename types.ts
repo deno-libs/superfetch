@@ -11,4 +11,4 @@ export type Handler = (
   connInfo: ConnInfo,
 ) => Response | Promise<Response>
 
-export type HandlerOrListener = Handler | Deno.Listener
+export type HandlerOrListener = Handler | Deno.Listener | any

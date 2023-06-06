@@ -1,8 +1,6 @@
 import { assertEquals, assertMatch, getFreePort } from './deps.ts'
 import { HandlerOrListener } from './types.ts'
 
-const port = await getFreePort(8080)
-
 const fetchEndpoint = async (
   port: number,
   url: string | URL,
@@ -21,52 +19,42 @@ const fetchEndpoint = async (
   return { res, data }
 }
 
-const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
+const makeFetchPromise = async (handlerOrListener: HandlerOrListener) => {
   // listener
-  if ('rid' in handlerOrListener && 'addr' in handlerOrListener) {
-    return async (url: URL | string = '', params?: RequestInit) => {
-      const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
-        setTimeout(async () => {
-          const { res, data } = await fetchEndpoint(port, url, params)
-          resolve({ res, data })
-          Deno.close(conn.rid + 1)
-          handlerOrListener.close()
-        })
-      })
-      const conn = await handlerOrListener.accept()
-      return p
-    }
-  } // (req, conn) => Response listener
-  else {
-    const listener = Deno.listen({ port, hostname: 'localhost' })
+  const port = await getFreePort(8080)
 
-    const serve = async (conn: Deno.Conn) => {
-      const requests = Deno.serveHttp(conn)
-      const { request, respondWith } = (await requests.nextRequest())!
-      const response = await handlerOrListener(request, conn)
-      if (response) {
-        respondWith(response)
-      }
-    }
+  const listener = Deno.listen({ port, hostname: 'localhost' })
 
-    return async (url: URL | string = '', params?: RequestInit) => {
-      const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
-        setTimeout(async () => {
-          const { res, data } = await fetchEndpoint(port, url, params)
-          resolve({ res, data })
-          Deno.close(conn.rid + 1)
-          listener.close()
-        })
-      })
+  const serve = async (conn: Deno.Conn) => {
+    const requests = Deno.serveHttp(conn)
+    const { request, respondWith } = (await requests.nextRequest())!
+
+    const response = await handlerOrListener(request, conn)
+    if (response) {
+      respondWith(response)
+    }
+  }
+
+  return async (url: URL | string = '', params?: RequestInit) => {
+    console.log("ghjv")
+    const connector = async () => {
       const conn = await listener.accept()
       await serve(conn)
-      return p
-    }
+      return conn;
+    };
+    const conn = connector();
+    let res = await fetchEndpoint(port, url, params)
+    Deno.close((await conn).rid + 1)
+    listener.close()
+      
+    console.log(res);
+    console.log('k')
+    return res
   }
 }
 
-export const makeFetch = (h: HandlerOrListener) => {
-  const resp = makeFetchPromise(h)
+export const makeFetch = async (h: HandlerOrListener) => {
+  const resp = await makeFetchPromise(h)
   async function fetch(url: string | URL, options?: RequestInit) {
     const { data, res } = await resp(url, options)
     const expectStatus = (a: number, b?: string) => {
