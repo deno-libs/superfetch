@@ -1,5 +1,26 @@
-import { assertEquals, assertMatch, getFreePort } from './deps.ts'
+import { assertEquals, assertMatch } from './deps.ts'
 import { HandlerOrListener } from './types.ts'
+
+// credit - 'https://deno.land/x/free_port@v1.2.0/mod.ts'
+function random(min: number, max: number): number {
+  return Math.round(Math.random() * (max - min)) + min
+}
+
+// credit - 'https://deno.land/x/free_port@v1.2.0/mod.ts'
+const getFreeListener = (
+  port: number,
+): { listener: Deno.Listener; port: number } => {
+  try {
+    const listener = Deno.listen({ port: port })
+    return { listener, port }
+  } catch (error) {
+    if (error instanceof Deno.errors.AddrInUse) {
+      const newPort = random(1024, 49151)
+      return getFreeListener(newPort)
+    }
+  }
+  throw Error
+}
 
 const fetchEndpoint = async (
   port: number,
@@ -19,42 +40,52 @@ const fetchEndpoint = async (
   return { res, data }
 }
 
-const makeFetchPromise = async (handlerOrListener: HandlerOrListener) => {
+const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   // listener
-  const port = await getFreePort(8080)
-
-  const listener = Deno.listen({ port, hostname: 'localhost' })
-
-  const serve = async (conn: Deno.Conn) => {
-    const requests = Deno.serveHttp(conn)
-    const { request, respondWith } = (await requests.nextRequest())!
-
-    const response = await handlerOrListener(request, conn)
-    if (response) {
-      respondWith(response)
+  const { listener, port } = getFreeListener(random(1024, 49151))
+  if ('rid' in handlerOrListener && 'adr' in handlerOrListener) {
+    // this might never get invoked because of Deno's blocking issue
+    return async (url: URL | string = '', params?: RequestInit) => {
+      const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
+        setTimeout(async () => {
+          const { res, data } = await fetchEndpoint(port, url, params)
+          resolve({ res, data })
+          Deno.close(conn.rid + 1)
+          handlerOrListener.close()
+        })
+      })
+      const conn = await handlerOrListener.accept()
+      return p
     }
-  }
+  } else {
+    const serve = async (conn: Deno.Conn) => {
+      const requests = Deno.serveHttp(conn)
+      const { request, respondWith } = (await requests.nextRequest())!
 
-  return async (url: URL | string = '', params?: RequestInit) => {
-    console.log("ghjv")
-    const connector = async () => {
-      const conn = await listener.accept()
-      await serve(conn)
-      return conn;
-    };
-    const conn = connector();
-    let res = await fetchEndpoint(port, url, params)
-    Deno.close((await conn).rid + 1)
-    listener.close()
-      
-    console.log(res);
-    console.log('k')
-    return res
+      const response = await handlerOrListener(request, conn)
+      if (response) {
+        respondWith(response)
+      }
+    }
+
+    return async (url: URL | string = '', params?: RequestInit) => {
+      const connector = async () => {
+        const conn = await listener.accept()
+        await serve(conn)
+        return conn
+      }
+      const connection = connector()
+      const res = await fetchEndpoint(port, url, params)
+      await connection.then((con) => Deno.close(con.rid + 1)).finally(() =>
+        listener.close()
+      )
+      return res
+    }
   }
 }
 
-export const makeFetch = async (h: HandlerOrListener) => {
-  const resp = await makeFetchPromise(h)
+export const makeFetch = (h: HandlerOrListener) => {
+  const resp = makeFetchPromise(h)
   async function fetch(url: string | URL, options?: RequestInit) {
     const { data, res } = await resp(url, options)
     const expectStatus = (a: number, b?: string) => {
@@ -131,7 +162,6 @@ export const makeFetch = async (h: HandlerOrListener) => {
         expectBody,
       }
     }
-
     return {
       expect: expectAll,
       expectStatus,
