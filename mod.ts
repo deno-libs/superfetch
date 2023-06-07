@@ -1,5 +1,5 @@
 import { assertEquals, assertMatch } from './deps.ts'
-import { HandlerOrListener } from './types.ts'
+import { Handler, HandlerOrListener } from './types.ts'
 
 // credit - 'https://deno.land/x/free_port@v1.2.0/mod.ts'
 function random(min: number, max: number): number {
@@ -62,7 +62,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       const requests = Deno.serveHttp(conn)
       const { request, respondWith } = (await requests.nextRequest())!
 
-      const response = await handlerOrListener(request, conn)
+      const response = await (handlerOrListener as Handler)(request, conn)
       if (response) {
         respondWith(response)
       }

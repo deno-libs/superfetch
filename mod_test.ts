@@ -55,7 +55,7 @@ describe('makeFetch', () => {
     res_2.expect("hello")
   })
 })
-describe.skip('expectStatus', () => {
+describe('expectStatus', () => {
   it('should pass with a correct status', async () => {
     const handler: Handler = () => new Response('Hello World')
     const fetch = makeFetch(handler)
@@ -86,7 +86,7 @@ describe.skip('expectStatus', () => {
   })
 })
 
-describe.skip('expectHeader', () => {
+describe('expectHeader', () => {
   it('should pass with a correct header value', async () => {
     const handler: Handler = () =>
       new Response('Hello World', { headers: { 'Content-Type': 'text/plain' } })
@@ -144,7 +144,7 @@ describe.skip('expectHeader', () => {
   })
 })
 
-describe.skip('expectBody', () => {
+describe('expectBody', () => {
   it('passes with correct body', async () => {
     const handler: Handler = () => new Response('Hello World')
     const fetch = makeFetch(handler)
@@ -165,7 +165,7 @@ describe.skip('expectBody', () => {
   })
 })
 
-describe.skip('expect', () => {
+describe('expect', () => {
   it('uses expectStatus if first arg is number', async () => {
     const handler: Handler = () => new Response('Hello World')
     const fetch = makeFetch(handler)
