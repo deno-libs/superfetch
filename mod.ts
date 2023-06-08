@@ -39,16 +39,17 @@ const fetchEndpoint = async (
   else data = await res.arrayBuffer()
   return { res, data }
 }
-
-const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
-  // listener
-  const { listener, port } = getFreeListener(random(1024, 49151))
+// port is only used if listener is passed
+const makeFetchPromise = (handlerOrListener: HandlerOrListener, port?: number) => {
   if ('rid' in handlerOrListener && 'adr' in handlerOrListener) {
     // this might never get invoked because of Deno's blocking issue
+    if(!port){
+      throw new Error("Port is required");
+    }
     return async (url: URL | string = '', params?: RequestInit) => {
       const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
-          const { res, data } = await fetchEndpoint(port, url, params)
+          const { res, data } = await fetchEndpoint(port!, url, params)
           resolve({ res, data })
           Deno.close(conn.rid + 1)
           handlerOrListener.close()
@@ -58,6 +59,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       return p
     }
   } else {
+    const { listener, port } = getFreeListener(random(1024, 49151))
     const serve = async (conn: Deno.Conn) => {
       const requests = Deno.serveHttp(conn)
       const { request, respondWith } = (await requests.nextRequest())!
@@ -84,8 +86,8 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   }
 }
 
-export const makeFetch = (h: HandlerOrListener) => {
-  const resp = makeFetchPromise(h)
+export const makeFetch = (h: HandlerOrListener, port?: number) => {
+  const resp = makeFetchPromise(h, port)
   async function fetch(url: string | URL, options?: RequestInit) {
     const { data, res } = await resp(url, options)
     const expectStatus = (a: number, b?: string) => {
