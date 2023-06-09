@@ -48,7 +48,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
     return async (url: URL | string = '', params?: RequestInit) => {
       const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
-          const { res, data } = await fetchEndpoint(port!, url, params)
+          const { res, data } = await fetchEndpoint(port, url, params)
           resolve({ res, data })
           Deno.close(conn.rid + 1)
           handlerOrListener.close()
