@@ -89,6 +89,7 @@ export const makeFetch = (h: HandlerOrListener) => {
   const resp = makeFetchPromise(h)
   async function fetch(url: string | URL, options?: RequestInit) {
     const { data, res } = await resp(url, options)
+    
     const expectStatus = (a: number, b?: string) => {
       assertEquals(
         res.status,
@@ -102,7 +103,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         expect: expectAll,
         expectStatus,
         expectHeader,
-        expectBody,
+        expectBody
       }
     }
     const expectHeader = (a: string, b: string | RegExp | null | string[]) => {
@@ -141,7 +142,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         expect: expectAll,
         expectStatus,
         expectHeader,
-        expectBody,
+        expectBody
       }
     }
     const expectBody = (a: unknown) => {
@@ -168,6 +169,7 @@ export const makeFetch = (h: HandlerOrListener) => {
       expectStatus,
       expectHeader,
       expectBody,
+      ...res
     }
   }
   return fetch
