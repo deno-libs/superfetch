@@ -43,6 +43,17 @@ describe('makeFetch', () => {
 
     res.expect('')
   })
+  it('should assign different ports if called many times', async () => {
+    const handler: Handler = () => new Response("hello")
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expect("hello")
+
+    
+    const fetch_2 = makeFetch(handler)
+    const res_2 = await fetch_2('/')
+    res_2.expect("hello")
+  })
 })
 describe('expectStatus', () => {
   it('should pass with a correct status', async () => {
