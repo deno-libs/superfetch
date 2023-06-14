@@ -54,6 +54,14 @@ describe('makeFetch', () => {
     const res_2 = await fetch_2('/')
     res_2.expect("hello")
   })
+  it('should return port', async () => {
+    const handler: Handler = () => new Response("hello")
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expect("hello")
+    
+    expect(res.port).toBe(parseInt(res.response.url.split(':').slice(-1)[0]))
+  })
 })
 describe('expectStatus', () => {
   it('should pass with a correct status', async () => {

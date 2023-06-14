@@ -42,10 +42,11 @@ const fetchEndpoint = async (
 const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   if ('rid' in handlerOrListener && 'adr' in handlerOrListener) {
     // this might never get invoked because of Deno's blocking issue
-    const port = (handlerOrListener.addr as Deno.NetAddr).port;
-    if(!port)
-      throw new Error("Port cannot be found");
-    return async (url: URL | string = '', params?: RequestInit) => {
+    const port = (handlerOrListener.addr as Deno.NetAddr).port
+    if (!port) {
+      throw new Error('Port cannot be found')
+    }
+    const resp = async (url: URL | string = '', params?: RequestInit) => {
       const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
           const { res, data } = await fetchEndpoint(port, url, params)
@@ -57,6 +58,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       const conn = await handlerOrListener.accept()
       return p
     }
+    return { resp, port }
   } else {
     const { listener, port } = getFreeListener(random(1024, 49151))
     const serve = async (conn: Deno.Conn) => {
@@ -69,7 +71,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       }
     }
 
-    return async (url: URL | string = '', params?: RequestInit) => {
+    const resp = async (url: URL | string = '', params?: RequestInit) => {
       const connector = async () => {
         const conn = await listener.accept()
         await serve(conn)
@@ -82,14 +84,15 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       )
       return res
     }
+    return { resp, port }
   }
 }
 
 export const makeFetch = (h: HandlerOrListener) => {
-  const resp = makeFetchPromise(h)
+  const { resp, port } = makeFetchPromise(h)
   async function fetch(url: string | URL, options?: RequestInit) {
-    const { data, res } = await resp(url, options)
-    
+    const { res, data } = await resp(url, options)
+
     const expectStatus = (a: number, b?: string) => {
       assertEquals(
         res.status,
@@ -103,7 +106,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         expect: expectAll,
         expectStatus,
         expectHeader,
-        expectBody
+        expectBody,
       }
     }
     const expectHeader = (a: string, b: string | RegExp | null | string[]) => {
@@ -142,7 +145,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         expect: expectAll,
         expectStatus,
         expectHeader,
-        expectBody
+        expectBody,
       }
     }
     const expectBody = (a: unknown) => {
@@ -169,7 +172,8 @@ export const makeFetch = (h: HandlerOrListener) => {
       expectStatus,
       expectHeader,
       expectBody,
-      ...res
+      response: res,
+      port
     }
   }
   return fetch
