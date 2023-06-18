@@ -17,7 +17,7 @@ class PseudoListener {
   ref = () => {}
   unref = () => {};
   [Symbol.asyncIterator]: any
-  #conn: Deno.Conn | undefined
+  conn: Deno.Conn | undefined
 
   constructor(port: number) {
     if (port === 0) port = this.fetchRandomPort()
@@ -34,13 +34,13 @@ class PseudoListener {
   accept = () => {
     // deno-lint-ignore no-async-promise-executor
     return new Promise<Deno.Conn>(async (resolve) => {
-      this.#conn = await this.#listener.accept()
-      const httpConn = Deno.serveHttp(this.#conn)
+      this.conn = await this.#listener.accept()
+      const httpConn = Deno.serveHttp(this.conn)
       const requestEvent = await httpConn.nextRequest()
       requestEvent?.respondWith(
         new Response('hello', { status: 200 }),
       )
-      resolve(this.#conn)
+      resolve(this.conn)
     })
   }
 
@@ -289,6 +289,7 @@ describe('Deno listener', () => {
       expect((e as Error).message).toMatch(
         'Port cannot be found',
       )
+      if (listener.conn?.rid) Deno.close(listener.conn?.rid + 1)
       listener.close()
     }
   })
