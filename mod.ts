@@ -19,7 +19,7 @@ const getFreeListener = (
       return getFreeListener(newPort)
     }
   }
-  throw new Error("Unable to get free port")
+  throw new Error('Unable to get free port')
 }
 
 const fetchEndpoint = async (
