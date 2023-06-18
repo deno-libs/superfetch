@@ -20,10 +20,10 @@ class PseudoListener {
   #conn: Deno.Conn | undefined
 
   constructor(port: number) {
-    if(port === 0) port = this.fetchRandomPort();
+    if (port === 0) port = this.fetchRandomPort()
     this.#listener = Deno.listen({ port })
     this.addr = this.#listener.addr as Deno.NetAddr
-    if(port === -1) this.addr.port = 0;
+    if (port === -1) this.addr.port = 0
     this.rid = this.#listener.rid
   }
 
@@ -278,10 +278,10 @@ describe('Deno listener', () => {
   it('should accept a listener', async () => {
     const fetch = makeFetch(new PseudoListener(0) as Deno.Listener)
     const res = await fetch('/')
-    res.expectStatus(200).expectBody("hello")
+    res.expectStatus(200).expectBody('hello')
   })
   it('should throw error if port is -1', async () => {
-    const listener = new PseudoListener(-1);
+    const listener = new PseudoListener(-1)
     try {
       const fetch = makeFetch(listener as Deno.Listener)
       await fetch('/')
@@ -289,9 +289,8 @@ describe('Deno listener', () => {
       expect((e as Error).message).toMatch(
         'Port cannot be found',
       )
-      listener.close();
+      listener.close()
     }
-    
   })
 })
 
