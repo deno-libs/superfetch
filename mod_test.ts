@@ -295,4 +295,38 @@ describe('Deno listener', () => {
   })
 })
 
+describe('Port randomness', () => {
+  it('should get a new port is already listening', async () => {
+    const port = 10649
+    let changed = false
+    const l = Deno.listen({ port })
+    globalThis.Math.random = () => {
+      if (!changed) {
+        changed = true
+        return 0.2
+      } else return 0.3
+    }
+    const handler: Handler = () => new Response('Hello World', { status: 200 })
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expectBody('Hello World')
+    expect(res.port).toBe(15462)
+    l.close()
+  })
+  it('should throw error if free port cannot be found', async () => {
+    globalThis.Deno.listen = (options) => {
+      throw new Error('bad error!')
+    }
+    const handler: Handler = () => new Response('Hello World', { status: 200 })
+    try {
+      const fetch = makeFetch(handler)
+      await fetch('/')
+    } catch (e) {
+      expect((e as Error).message).toMatch(
+        'Unable to get free port',
+      )
+    }
+  })
+})
+
 run()
