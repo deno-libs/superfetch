@@ -14,6 +14,8 @@ HTTP Server testing library inspired by
 
 ## Example
 
+### Basic testing
+
 ```ts
 import { describe, it, run } from 'https://deno.land/x/tincan/mod.ts'
 import { makeFetch } from 'https://x.nest.land/superfetch@1.0.0/mod.ts'
@@ -28,6 +30,27 @@ describe('makeFetch', () => {
     const res = await fetch('/')
     
     res.expect('Hello World')
+  })
+
+run()
+```
+### Full access to Response and port
+```ts
+import { describe, it, run } from 'https://deno.land/x/tincan/mod.ts'
+import { makeFetch } from 'https://x.nest.land/superfetch@1.0.0/mod.ts'
+import type { Handler } from 'https://deno.land/std@0.182.0/http/server.ts'
+
+describe('makeFetch', () => {
+  it('should work with HTTP handler', async () => {
+    const handler: Handler = (res) => new Response('Hello World')
+
+    const fetch = makeFetch(s)
+
+    const res = await fetch('/')
+    
+    res.expect('Hello World')
+    console.log(res.response) // server response object
+    console.log(res.port) // port on which the server was listening
   })
 
 run()
