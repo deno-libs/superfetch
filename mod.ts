@@ -42,6 +42,7 @@ const fetchEndpoint = async (
 const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   if ('rid' in handlerOrListener && 'adr' in handlerOrListener) {
     // this might never get invoked because of Deno's blocking issue
+    
     const port = (handlerOrListener.addr as Deno.NetAddr).port
     if (!port) {
       throw new Error('Port cannot be found')
@@ -173,7 +174,7 @@ export const makeFetch = (h: HandlerOrListener) => {
       expectHeader,
       expectBody,
       response: res,
-      port
+      port,
     }
   }
   return fetch

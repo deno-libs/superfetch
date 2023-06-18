@@ -8,6 +8,47 @@ import { makeFetch } from './mod.ts'
 import { Handler } from './types.ts'
 import { AssertionError } from 'https://deno.land/std@0.182.0/testing/asserts.ts'
 
+// this simulates the listener
+class PseudoListener {
+  #listener: Deno.Listener
+  addr: Deno.NetAddr | undefined
+  adr = ''
+  rid = 0
+  ref = () => {}
+  unref = () => {};
+  [Symbol.asyncIterator]: any
+  #conn: Deno.Conn | undefined
+
+  constructor(port: number) {
+    if(port === 0) port = this.fetchRandomPort();
+    this.#listener = Deno.listen({ port })
+    this.addr = this.#listener.addr as Deno.NetAddr
+    if(port === -1) this.addr.port = 0;
+    this.rid = this.#listener.rid
+  }
+
+  fetchRandomPort = () => {
+    return Math.round(Math.random() * (9000 - 2000)) + 2000
+  }
+
+  accept = () => {
+    // deno-lint-ignore no-async-promise-executor
+    return new Promise<Deno.Conn>(async (resolve) => {
+      this.#conn = await this.#listener.accept()
+      const httpConn = Deno.serveHttp(this.#conn)
+      const requestEvent = await httpConn.nextRequest()
+      requestEvent?.respondWith(
+        new Response('hello', { status: 200 }),
+      )
+      resolve(this.#conn)
+    })
+  }
+
+  close = () => {
+    return this.#listener.close()
+  }
+}
+
 const tw = new TextDecoder()
 
 describe('makeFetch', () => {
@@ -30,7 +71,8 @@ describe('makeFetch', () => {
   })
   it('should fallback to arraybuffer', async () => {
     const file = await Deno.readFile('README.md')
-    const handler: Handler = () => new Response(file,{headers: {'Content-Type': 'text/markdown'}})
+    const handler: Handler = () =>
+      new Response(file, { headers: { 'Content-Type': 'text/markdown' } })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
 
@@ -44,22 +86,23 @@ describe('makeFetch', () => {
     res.expect('')
   })
   it('should assign different ports if called many times', async () => {
-    const handler: Handler = () => new Response("hello")
+    const handler: Handler = () => new Response('hello')
     const fetch = makeFetch(handler)
     const res = await fetch('/')
-    res.expect("hello")
+    res.expect('hello')
 
-    
     const fetch_2 = makeFetch(handler)
     const res_2 = await fetch_2('/')
-    res_2.expect("hello")
+    res_2.expect('hello')
+
+    expect(res_2.port).not.toEqual(res.port)
   })
   it('should return port', async () => {
-    const handler: Handler = () => new Response("hello")
+    const handler: Handler = () => new Response('hello')
     const fetch = makeFetch(handler)
     const res = await fetch('/')
-    res.expect("hello")
-    
+    res.expect('hello')
+
     expect(res.port).toBe(parseInt(res.response.url.split(':').slice(-1)[0]))
   })
 })
@@ -136,6 +179,32 @@ describe('expectHeader', () => {
       )
     }
   })
+  it('throws if header does not exist and regex is passed', async () => {
+    const handler: Handler = () =>
+      new Response('Hello World', { headers: undefined })
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    try {
+      res.expectHeader('garbage-header', /image/)
+    } catch (e) {
+      expect((e as Error).message).toMatch(
+        'expected header null to not be empty',
+      )
+    }
+  })
+  it('throws if header does not exist and array is passed', async () => {
+    const handler: Handler = () =>
+      new Response('Hello World', { headers: undefined })
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    try {
+      res.expectHeader('garbage-header', ['content-type', 'content-length'])
+    } catch (e) {
+      expect((e as Error).message).toMatch(
+        'expected header null to not be empty',
+      )
+    }
+  })
   it('can expect array of header values', async () => {
     const handler: Handler = () =>
       new Response('Hello World', { headers: { 'A': '1,2,3' } })
@@ -143,12 +212,20 @@ describe('expectHeader', () => {
     const res = await fetch('/')
     res.expectHeader('A', ['1', '2', '3'])
   })
-  it('expects if header is not present', async ()=> {
-    const handler: Handler = () =>
-      new Response('Hello World')
+  it('expects if header is not present', async () => {
+    const handler: Handler = () => new Response('Hello World')
     const fetch = makeFetch(handler)
     const res = await fetch('/')
     res.expectHeader('A', null)
+  })
+  it('should fallback to arraybuffer when formData is used', async () => {
+    const form = new FormData()
+    form.set('hello', 'world')
+    const handler: Handler = () =>
+      new Response(form, { headers: { 'Content-Type': 'multipart/form-data' } })
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expectHeader('Content-Type', 'multipart/form-data')
   })
 })
 
@@ -194,6 +271,27 @@ describe('expect', () => {
     const fetch = makeFetch(handler)
     const res = await fetch('/')
     res.expect('Hello World')
+  })
+})
+
+describe('Deno listener', () => {
+  it('should accept a listener', async () => {
+    const fetch = makeFetch(new PseudoListener(0) as Deno.Listener)
+    const res = await fetch('/')
+    res.expectStatus(200).expectBody("hello")
+  })
+  it('should throw error if port is -1', async () => {
+    const listener = new PseudoListener(-1);
+    try {
+      const fetch = makeFetch(listener as Deno.Listener)
+      await fetch('/')
+    } catch (e) {
+      expect((e as Error).message).toMatch(
+        'Port cannot be found',
+      )
+      listener.close();
+    }
+    
   })
 })
 

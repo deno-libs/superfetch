@@ -3,11 +3,14 @@
 [![GitHub Workflow Status][gh-actions-img]][github-actions]
 [![Codecov][codecov-badge]][codecov] [![][docs-badge]][docs]
 
-HTTP Server testing library inspired by [node-supertest-fetch](https://github.com/jwalton/node-supertest-fetch).
+HTTP Server testing library inspired by
+[node-supertest-fetch](https://github.com/jwalton/node-supertest-fetch).
 
-> I'm building [Flash](https://flash-dev.vercel.app) - a service to deploy websites and apps on the new decentralized stack.
+> I'm building [Flash](https://flash-dev.vercel.app) - a service to deploy
+> websites and apps on the new decentralized stack.
 >
-> If you'd like to try or collab, [dm](https://t.me/v_1rtl) or [email](mailto:yo@v1rtl.site)
+> If you'd like to try or collab, [dm](https://t.me/v_1rtl) or
+> [email](mailto:yo@v1rtl.site)
 
 ## Example
 
