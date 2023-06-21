@@ -22,15 +22,21 @@ const getFreeListener = (
   throw new Error('Unable to get free port')
 }
 
+type Expect = {
+  expectStatus: (a: number, b?: string) => Expect
+  expectHeader: (a: string, b: string | RegExp | null | string[]) => Expect
+  expectBody: (a: unknown) => void
+  expect: (a: unknown, b?: any) => Expect
+}
+
+type MakeFetchResponse = { port: number } & Response & Expect
+
 const fetchEndpoint = async (
   port: number,
   url: string | URL,
   params?: RequestInit,
 ) => {
-  const res = await fetch(
-    `http://localhost:${port}${url}`,
-    params,
-  )
+  const res = await fetch(`http://localhost:${port}${url}`, params)
   let data: unknown
   const ct = res.headers.get('Content-Type')
   if (ct === 'application/json') data = await res.json()
@@ -80,9 +86,9 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       }
       const connection = connector()
       const res = await fetchEndpoint(port, url, params)
-      await connection.then((con) => Deno.close(con.rid + 1)).finally(() =>
-        listener.close()
-      )
+      await connection
+        .then((con) => Deno.close(con.rid + 1))
+        .finally(() => listener.close())
       return res
     }
     return { resp, port }
@@ -122,9 +128,7 @@ export const makeFetch = (h: HandlerOrListener) => {
           b,
           `expected header ${a} to match regexp ${b}, got ${header}`,
         )
-      } else if (
-        Array.isArray(b)
-      ) {
+      } else if (Array.isArray(b)) {
         if (header === null) {
           throw new Error(`expected header ${header} to not be empty`)
         }
@@ -168,14 +172,13 @@ export const makeFetch = (h: HandlerOrListener) => {
         expectBody,
       }
     }
-    return {
-      expect: expectAll,
-      expectStatus,
-      expectHeader,
-      expectBody,
-      response: res,
-      port,
-    }
+    const result = res as MakeFetchResponse
+    result.port = port
+    result.expectBody = expectBody
+    result.expect = expectAll
+    result.expectHeader = expectHeader
+    result.expectStatus = expectStatus
+    return result
   }
   return fetch
 }

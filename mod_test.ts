@@ -103,7 +103,7 @@ describe('makeFetch', () => {
     const res = await fetch('/')
     res.expect('hello')
 
-    expect(res.port).toBe(parseInt(res.response.url.split(':').slice(-1)[0]))
+    expect(res.port).toBe(parseInt(res.url.split(':').slice(-1)[0]))
   })
 })
 describe('expectStatus', () => {

@@ -34,7 +34,9 @@ describe('makeFetch', () => {
 
 run()
 ```
+
 ### Full access to Response and port
+
 ```ts
 import { describe, it, run } from 'https://deno.land/x/tincan/mod.ts'
 import { makeFetch } from 'https://x.nest.land/superfetch@1.0.0/mod.ts'
@@ -49,7 +51,7 @@ describe('makeFetch', () => {
     const res = await fetch('/')
     
     res.expect('Hello World')
-    console.log(res.response) // server response object
+    console.log(res) // server response object
     console.log(res.port) // port on which the server was listening
   })
 
