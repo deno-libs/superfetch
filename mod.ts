@@ -19,18 +19,24 @@ const getFreeListener = (
       return getFreeListener(newPort)
     }
   }
-  throw Error
+  throw new Error('Unable to get free port')
 }
+
+type Expect = {
+  expectStatus: (a: number, b?: string) => Expect
+  expectHeader: (a: string, b: string | RegExp | null | string[]) => Expect
+  expectBody: (a: unknown) => void
+  expect: (a: unknown, b?: any) => Expect
+}
+
+type MakeFetchResponse = { port: number } & Response & Expect
 
 const fetchEndpoint = async (
   port: number,
   url: string | URL,
   params?: RequestInit,
 ) => {
-  const res = await fetch(
-    `http://localhost:${port}${url}`,
-    params,
-  )
+  const res = await fetch(`http://localhost:${port}${url}`, params)
   let data: unknown
   const ct = res.headers.get('Content-Type')
   if (ct === 'application/json') data = await res.json()
@@ -42,10 +48,12 @@ const fetchEndpoint = async (
 const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   if ('rid' in handlerOrListener && 'adr' in handlerOrListener) {
     // this might never get invoked because of Deno's blocking issue
-    const port = (handlerOrListener.addr as Deno.NetAddr).port;
-    if(!port)
-      throw new Error("Port cannot be found");
-    return async (url: URL | string = '', params?: RequestInit) => {
+
+    const port = (handlerOrListener.addr as Deno.NetAddr).port
+    if (!port) {
+      throw new Error('Port cannot be found')
+    }
+    const resp = async (url: URL | string = '', params?: RequestInit) => {
       const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
           const { res, data } = await fetchEndpoint(port, url, params)
@@ -57,6 +65,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       const conn = await handlerOrListener.accept()
       return p
     }
+    return { resp, port }
   } else {
     const { listener, port } = getFreeListener(random(1024, 49151))
     const serve = async (conn: Deno.Conn) => {
@@ -69,7 +78,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       }
     }
 
-    return async (url: URL | string = '', params?: RequestInit) => {
+    const resp = async (url: URL | string = '', params?: RequestInit) => {
       const connector = async () => {
         const conn = await listener.accept()
         await serve(conn)
@@ -77,19 +86,20 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
       }
       const connection = connector()
       const res = await fetchEndpoint(port, url, params)
-      await connection.then((con) => Deno.close(con.rid + 1)).finally(() =>
-        listener.close()
-      )
+      await connection
+        .then((con) => Deno.close(con.rid + 1))
+        .finally(() => listener.close())
       return res
     }
+    return { resp, port }
   }
 }
 
 export const makeFetch = (h: HandlerOrListener) => {
-  const resp = makeFetchPromise(h)
+  const { resp, port } = makeFetchPromise(h)
   async function fetch(url: string | URL, options?: RequestInit) {
-    const { data, res } = await resp(url, options)
-    
+    const { res, data } = await resp(url, options)
+
     const expectStatus = (a: number, b?: string) => {
       assertEquals(
         res.status,
@@ -103,7 +113,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         expect: expectAll,
         expectStatus,
         expectHeader,
-        expectBody
+        expectBody,
       }
     }
     const expectHeader = (a: string, b: string | RegExp | null | string[]) => {
@@ -118,9 +128,7 @@ export const makeFetch = (h: HandlerOrListener) => {
           b,
           `expected header ${a} to match regexp ${b}, got ${header}`,
         )
-      } else if (
-        Array.isArray(b)
-      ) {
+      } else if (Array.isArray(b)) {
         if (header === null) {
           throw new Error(`expected header ${header} to not be empty`)
         }
@@ -142,7 +150,7 @@ export const makeFetch = (h: HandlerOrListener) => {
         expect: expectAll,
         expectStatus,
         expectHeader,
-        expectBody
+        expectBody,
       }
     }
     const expectBody = (a: unknown) => {
@@ -164,13 +172,13 @@ export const makeFetch = (h: HandlerOrListener) => {
         expectBody,
       }
     }
-    return {
-      expect: expectAll,
-      expectStatus,
-      expectHeader,
-      expectBody,
-      ...res
-    }
+    const result = res as MakeFetchResponse
+    result.port = port
+    result.expectBody = expectBody
+    result.expect = expectAll
+    result.expectHeader = expectHeader
+    result.expectStatus = expectStatus
+    return result
   }
   return fetch
 }
