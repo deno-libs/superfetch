@@ -6,7 +6,7 @@ import {
 } from 'https://deno.land/x/tincan@1.0.1/mod.ts'
 import { makeFetch } from './mod.ts'
 import { Handler } from './types.ts'
-import { AssertionError } from 'https://deno.land/std@0.182.0/testing/asserts.ts'
+import { AssertionError } from 'https://deno.land/std@0.197.0/assert/assertion_error.ts'
 
 // this simulates the listener
 class PseudoListener {
@@ -37,9 +37,7 @@ class PseudoListener {
       this.conn = await this.#listener.accept()
       const httpConn = Deno.serveHttp(this.conn)
       const requestEvent = await httpConn.nextRequest()
-      requestEvent?.respondWith(
-        new Response('hello', { status: 200 }),
-      )
+      requestEvent?.respondWith(new Response('hello', { status: 200 }))
       resolve(this.conn)
     })
   }
@@ -207,7 +205,7 @@ describe('expectHeader', () => {
   })
   it('can expect array of header values', async () => {
     const handler: Handler = () =>
-      new Response('Hello World', { headers: { 'A': '1,2,3' } })
+      new Response('Hello World', { headers: { A: '1,2,3' } })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
     res.expectHeader('A', ['1', '2', '3'])
@@ -260,7 +258,7 @@ describe('expect', () => {
   it('uses expectHeader if two arguments', async () => {
     const handler: Handler = () =>
       new Response('Hello World', {
-        'headers': { 'Content-Type': 'text/plain' },
+        headers: { 'Content-Type': 'text/plain' },
       })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
@@ -286,9 +284,7 @@ describe('Deno listener', () => {
       const fetch = makeFetch(listener as Deno.Listener)
       await fetch('/')
     } catch (e) {
-      expect((e as Error).message).toMatch(
-        'Port cannot be found',
-      )
+      expect((e as Error).message).toMatch('Port cannot be found')
       if (listener.conn?.rid) Deno.close(listener.conn?.rid + 1)
       listener.close()
     }
@@ -322,9 +318,7 @@ describe('Port randomness', () => {
       const fetch = makeFetch(handler)
       await fetch('/')
     } catch (e) {
-      expect((e as Error).message).toMatch(
-        'Unable to get free port',
-      )
+      expect((e as Error).message).toMatch('Unable to get free port')
     }
   })
 })
