@@ -12,7 +12,7 @@ class PseudoListener {
   rid = 0
   ref = () => {}
   unref = () => {};
-  [Symbol.asyncIterator]: any
+  [Symbol.asyncIterator]: unknown
   conn: Deno.Conn | undefined
 
   constructor(port: number) {

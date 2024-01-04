@@ -26,7 +26,7 @@ type Expect = {
   expectStatus: (a: number, b?: string) => Expect
   expectHeader: (a: string, b: string | RegExp | null | string[]) => Expect
   expectBody: (a: unknown) => void
-  expect: (a: unknown, b?: any) => Expect
+  expect: (a: unknown, b?: unknown) => Expect
 }
 
 type MakeFetchResponse = { port: number } & Response & Expect
@@ -157,6 +157,7 @@ export const makeFetch = (h: HandlerOrListener) => {
       assertEquals(data, a, `Expected to have body ${a}, got ${data}`)
     }
 
+    // deno-lint-ignore no-explicit-any
     const expectAll = (a: unknown, b?: any) => {
       if (typeof a === 'number') {
         expectStatus(a, b)
