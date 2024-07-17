@@ -1,5 +1,10 @@
 import { assertEquals, assertMatch, parseMediaType } from './deps.ts'
-import { Handler, HandlerOrListener } from './types.ts'
+import type {
+  FetchFunction,
+  Handler,
+  HandlerOrListener,
+  MakeFetchResponse,
+} from './types.ts'
 
 // credit - 'https://deno.land/x/free_port@v1.2.0/mod.ts'
 function random(min: number, max: number): number {
@@ -21,15 +26,6 @@ const getFreeListener = (
   }
   throw new Error('Unable to get free port')
 }
-
-type Expect = {
-  expectStatus: (a: number, b?: string) => Expect
-  expectHeader: (a: string, b: string | RegExp | null | string[]) => Expect
-  expectBody: (a: unknown) => void
-  expect: (a: unknown, b?: unknown) => Expect
-}
-
-type MakeFetchResponse = { port: number } & Response & Expect
 
 const fetchEndpoint = async (
   port: number,
@@ -97,7 +93,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   }
 }
 
-export const makeFetch = (h: HandlerOrListener) => {
+export const makeFetch = (h: HandlerOrListener): FetchFunction => {
   const { resp, port } = makeFetchPromise(h)
   async function fetch(url: string | URL, options?: RequestInit) {
     const { res, data } = await resp(url, options)
