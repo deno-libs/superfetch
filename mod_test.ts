@@ -1,7 +1,7 @@
-import { describe, it } from 'https://deno.land/std@0.224.0/testing/bdd.ts'
+import { describe, it } from 'jsr:@std/testing@0.225.3/bdd'
 import { expect } from 'jsr:@std/expect@0.224.5/expect'
 import { makeFetch } from './mod.ts'
-import { Handler } from './types.ts'
+import type { Handler } from './types.ts'
 import { AssertionError } from 'jsr:@std/assert@1.0.0/assertion-error'
 
 // this simulates the listener

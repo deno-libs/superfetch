@@ -1,4 +1,4 @@
-import { describe, it } from 'https://deno.land/std@0.224.0/testing/bdd.ts'
+import { describe, it } from 'jsr:@std/testing@0.225.3/bdd'
 import { makeFetch } from './mod.ts'
 import { GraphQLHTTP } from 'https://deno.land/x/gql@2.0.2/mod.ts'
 import { buildSchema } from 'npm:graphql@16.8.1'

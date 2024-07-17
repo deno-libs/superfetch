@@ -11,13 +11,12 @@ HTTP Server testing library inspired by
 ### Basic testing
 
 ```ts
-import { describe, it, run } from 'https://deno.land/x/tincan/mod.ts'
-import { makeFetch } from 'https://x.nest.land/superfetch@1.0.0/mod.ts'
-import type { Handler } from 'https://deno.land/std@0.182.0/http/server.ts'
+import { describe, it } from 'jsr:@std/testing/bdd'
+import { makeFetch } from 'jsr:@deno-libs/superfetch'
 
 describe('makeFetch', () => {
   it('should work with HTTP handler', async () => {
-    const handler: Handler = (res) => new Response('Hello World')
+    const handler = (res) => new Response('Hello World')
 
     const fetch = makeFetch(s)
 
@@ -32,13 +31,12 @@ run()
 ### Full access to Response and port
 
 ```ts
-import { describe, it, run } from 'https://deno.land/x/tincan/mod.ts'
-import { makeFetch } from 'https://x.nest.land/superfetch@1.0.0/mod.ts'
-import type { Handler } from 'https://deno.land/std@0.182.0/http/server.ts'
+import { describe, it } from 'jsr:@std/testing/bdd'
+import { makeFetch } from 'jsr:@deno-libs/superfetch'
 
 describe('makeFetch', () => {
   it('should work with HTTP handler', async () => {
-    const handler: Handler = (res) => new Response('Hello World')
+    const handler = (res) => new Response('Hello World')
 
     const fetch = makeFetch(s)
 
