@@ -133,7 +133,7 @@ export const makeFetch = (h: HandlerOrListener): FetchFunction => {
         assertEquals(
           header,
           b.join(','),
-          `expected header ${a} to match regexp ${b}, got ${header}`,
+          `expected header ${a} to match ${b.join(', ')}, got ${header}`,
         )
       } else {
         assertEquals(
@@ -152,7 +152,13 @@ export const makeFetch = (h: HandlerOrListener): FetchFunction => {
       }
     }
     const expectBody = (a: unknown) => {
-      assertEquals(data, a, `Expected to have body ${a}, got ${data}`)
+      if (a instanceof RegExp) {
+        assertMatch(
+          data as string,
+          a,
+          `Expected body to match regexp ${a}, got ${data}`,
+        )
+      } else assertEquals(data, a, `Expected to have body ${a}, got ${data}`)
     }
 
     // deno-lint-ignore no-explicit-any

@@ -184,10 +184,8 @@ describe('expectHeader', () => {
     try {
       res.expectHeader('Content-Type', /image/)
     } catch (e) {
-      expect((e as Error).message).toMatch(
-        new RegExp(
-          'Expected actual: "text/html" to match: "/image/": expected header Content-Type to match regexp /image/, got text/html',
-        ),
+      expect((e as Error).message).toEqual(
+        'Expected actual: "text/html" to match: "/image/": expected header Content-Type to match regexp /image/, got text/html',
       )
     }
   })
@@ -257,6 +255,12 @@ describe('expectBody', () => {
     } catch (e) {
       expect(e).toBeDefined()
     }
+  })
+  it('supports regex', async () => {
+    const handler: Handler = () => new Response('Hello World')
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+    res.expectBody(new RegExp('Hello'))
   })
 })
 
