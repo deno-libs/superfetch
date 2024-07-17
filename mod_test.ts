@@ -1,8 +1,8 @@
-import { describe, it } from 'https://deno.land/std@0.210.0/testing/bdd.ts'
-import { expect } from './deps.ts'
+import { describe, it } from 'https://deno.land/std@0.224.0/testing/bdd.ts'
+import { expect } from 'jsr:@std/expect@0.224.5/expect'
 import { makeFetch } from './mod.ts'
 import { Handler } from './types.ts'
-import { AssertionError } from 'https://deno.land/std@0.210.0/assert/assertion_error.ts'
+import { AssertionError } from 'jsr:@std/assert@1.0.0/assertion-error'
 
 // this simulates the listener
 class PseudoListener {
@@ -23,7 +23,7 @@ class PseudoListener {
     this.rid = this.#listener.rid
   }
 
-  fetchRandomPort = () => {
+  fetchRandomPort() {
     return Math.round(Math.random() * (9000 - 2000)) + 2000
   }
 
@@ -48,6 +48,18 @@ const tw = new TextDecoder()
 describe('makeFetch', () => {
   it('should work with HTTP handler', async () => {
     const handler: Handler = () => new Response('Hello World')
+    const fetch = makeFetch(handler)
+    const res = await fetch('/')
+
+    res.expect('Hello World')
+  })
+  it('should not crash with text/plain', async () => {
+    const handler: Handler = () =>
+      new Response('Hello World', {
+        headers: {
+          'Content-Type': 'text/plain;charset=UTF-8',
+        },
+      })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
 

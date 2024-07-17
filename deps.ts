@@ -1,3 +1,3 @@
-export { expect } from 'https://deno.land/std@0.210.0/expect/mod.ts'
-export { assertEquals } from 'https://deno.land/std@0.210.0/assert/assert_equals.ts'
-export { assertMatch } from 'https://deno.land/std@0.210.0/assert/assert_match.ts'
+export { assertEquals } from 'jsr:@std/assert@1.0.0/equals'
+export { assertMatch } from 'jsr:@std/assert@1.0.0/match'
+export { parseMediaType } from 'jsr:@std/media-types@1.0.1/parse-media-type'

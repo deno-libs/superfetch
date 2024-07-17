@@ -1,4 +1,4 @@
-import { assertEquals, assertMatch } from './deps.ts'
+import { assertEquals, assertMatch, parseMediaType } from './deps.ts'
 import { Handler, HandlerOrListener } from './types.ts'
 
 // credit - 'https://deno.land/x/free_port@v1.2.0/mod.ts'
@@ -39,9 +39,11 @@ const fetchEndpoint = async (
   const res = await fetch(`http://localhost:${port}${url}`, params)
   let data: unknown
   const ct = res.headers.get('Content-Type')
-  if (ct === 'application/json') data = await res.json()
-  else if (ct?.includes('text')) data = await res.text()
-  else if (ct === null) data = await res.text()
+  if (ct === null) return { data: await res.text(), res }
+  const [mediaType] = parseMediaType(ct)
+
+  if (mediaType === 'application/json') data = await res.json()
+  else if (mediaType.includes('text')) data = await res.text()
   else data = await res.arrayBuffer()
   return { res, data }
 }
