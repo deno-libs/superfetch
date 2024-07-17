@@ -8,5 +8,11 @@
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --coverage=coverage"
+  },
+  "name": "@deno-libs/gql",
+  "version": "3.0.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./types": "./types.ts"
   }
 }
