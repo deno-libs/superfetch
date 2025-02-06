@@ -26,9 +26,7 @@ const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
     // this might never get invoked because of Deno's blocking issue
 
     const port = handlerOrListener.addr.port
-    if (!port) {
-      throw new Error('Port cannot be found')
-    }
+   
     const resp = (url: URL | string = '', params?: RequestInit) => {
       return new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
