@@ -23,8 +23,6 @@ const fetchEndpoint = async (
 }
 const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   if ('addr' in handlerOrListener) {
-    // this might never get invoked because of Deno's blocking issue
-
     const port = handlerOrListener.addr.port
    
     const resp = (url: URL | string = '', params?: RequestInit) => {
