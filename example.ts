@@ -1,7 +1,6 @@
 import { makeFetch } from './mod.ts'
-import { Handler } from './types.ts'
 
-const handler: Handler = (req) => {
+const handler: Deno.ServeHandler = (req) => {
   const url = new URL(req.url).pathname
   if (url === '/') return new Response('hello')
   else if (url === '/status') {
@@ -11,7 +10,8 @@ const handler: Handler = (req) => {
       status: 418,
       headers: { 'Coffee-Allowed': 'No' },
     })
-  } else return new Response('Not Found', { status: 404 })
+  }
+  return new Response('Not Found', { status: 404 })
 }
 
 const fetch = makeFetch(handler)

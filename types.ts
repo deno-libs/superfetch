@@ -1,9 +1,6 @@
-export type Handler = (
-  request: Request,
-  connInfo: Deno.Conn,
-) => Response | Promise<Response>
-
-export type HandlerOrListener = Handler | Deno.Listener
+export type HandlerOrListener =
+  | Deno.ServeHandler
+  | Deno.HttpServer<Deno.NetAddr>
 
 export type MakeFetchResponse = { port: number } & Response & Expect
 

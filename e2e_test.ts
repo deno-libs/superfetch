@@ -1,6 +1,6 @@
 import { describe, it } from 'jsr:@std/testing@0.225.3/bdd'
 import { makeFetch } from './mod.ts'
-import { GraphQLHTTP } from 'https://deno.land/x/gql@2.0.2/mod.ts'
+import { GraphQLHTTP } from 'https://deno.land/x/gql@3.0.1/mod.ts'
 import { buildSchema } from 'npm:graphql@16.8.1'
 
 describe('e2e', () => {

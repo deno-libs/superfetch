@@ -1,31 +1,9 @@
 import { assertEquals, assertMatch, parseMediaType } from './deps.ts'
 import type {
   FetchFunction,
-  Handler,
   HandlerOrListener,
   MakeFetchResponse,
 } from './types.ts'
-
-// credit - 'https://deno.land/x/free_port@v1.2.0/mod.ts'
-function random(min: number, max: number): number {
-  return Math.round(Math.random() * (max - min)) + min
-}
-
-// credit - 'https://deno.land/x/free_port@v1.2.0/mod.ts'
-const getFreeListener = (
-  port: number,
-): { listener: Deno.Listener; port: number } => {
-  try {
-    const listener = Deno.listen({ port: port })
-    return { listener, port }
-  } catch (error) {
-    if (error instanceof Deno.errors.AddrInUse) {
-      const newPort = random(1024, 49151)
-      return getFreeListener(newPort)
-    }
-  }
-  throw new Error('Unable to get free port')
-}
 
 const fetchEndpoint = async (
   port: number,
@@ -44,52 +22,31 @@ const fetchEndpoint = async (
   return { res, data }
 }
 const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
-  if ('rid' in handlerOrListener && 'adr' in handlerOrListener) {
+  if ('addr' in handlerOrListener) {
     // this might never get invoked because of Deno's blocking issue
 
-    const port = (handlerOrListener.addr as Deno.NetAddr).port
+    const port = handlerOrListener.addr.port
     if (!port) {
       throw new Error('Port cannot be found')
     }
-    const resp = async (url: URL | string = '', params?: RequestInit) => {
-      const p = new Promise<{ res: Response; data?: unknown }>((resolve) => {
+    const resp = (url: URL | string = '', params?: RequestInit) => {
+      return new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
           const { res, data } = await fetchEndpoint(port, url, params)
           resolve({ res, data })
-          Deno.close(conn.rid + 1)
-          handlerOrListener.close()
+          return handlerOrListener.shutdown()
         })
       })
-      const conn = await handlerOrListener.accept()
-      return p
     }
     return { resp, port }
   } else {
-    const { listener, port } = getFreeListener(random(1024, 49151))
-    const serve = async (conn: Deno.Conn) => {
-      const requests = Deno.serveHttp(conn)
-      const { request, respondWith } = (await requests.nextRequest())!
-
-      const response = await (handlerOrListener as Handler)(request, conn)
-      if (response) {
-        respondWith(response)
-      }
-    }
-
+    const server = Deno.serve({ port: 0 }, handlerOrListener)
     const resp = async (url: URL | string = '', params?: RequestInit) => {
-      const connector = async () => {
-        const conn = await listener.accept()
-        await serve(conn)
-        return conn
-      }
-      const connection = connector()
-      const res = await fetchEndpoint(port, url, params)
-      await connection
-        .then((con) => Deno.close(con.rid + 1))
-        .finally(() => listener.close())
+      const res = await fetchEndpoint(server.addr.port, url, params)
+      await server.shutdown()
       return res
     }
-    return { resp, port }
+    return { resp, port: server.addr.port }
   }
 }
 
