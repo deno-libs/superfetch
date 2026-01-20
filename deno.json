@@ -7,7 +7,7 @@
     "semiColons": false
   },
   "tasks": {
-    "test": "deno test --allow-net --allow-read --allow-write --coverage=coverage"
+    "test": "deno test --allow-net --allow-read --allow-write --allow-env --coverage=coverage"
   },
   "name": "@deno-libs/superfetch",
   "version": "3.0.0",
