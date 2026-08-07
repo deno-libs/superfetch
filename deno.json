@@ -20,7 +20,6 @@
       ".claude",
       ".github",
       ".vscode",
-      "egg.json",
       "**/*_test.ts"
     ]
   },
