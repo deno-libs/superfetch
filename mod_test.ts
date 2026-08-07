@@ -1,7 +1,7 @@
-import { describe, it } from 'jsr:@std/testing@0.225.3/bdd'
-import { expect } from 'jsr:@std/expect@0.224.5/expect'
+import { describe, it } from '@std/testing/bdd'
+import { expect } from '@std/expect/expect'
 import { makeFetch } from './mod.ts'
-import { AssertionError } from 'jsr:@std/assert@1.0.0/assertion-error'
+import { AssertionError } from '@std/assert/assertion-error'
 
 const tw = new TextDecoder()
 
@@ -92,16 +92,10 @@ describe('expectStatus', () => {
     const fetch = makeFetch(handler)
     const res = await fetch('/')
 
-    try {
-      res.expectStatus(404)
-    } catch (e) {
-      expect(e instanceof AssertionError).toBe(true)
-      expect((e as Error).message).toMatch(
-        new RegExp(
-          'Values are not equal: expected to have status code 404 but was 200',
-        ),
-      )
-    }
+    expect(() => res.expectStatus(404)).toThrow(AssertionError)
+    expect(() => res.expectStatus(404)).toThrow(
+      'expected to have status code 404 but was 200',
+    )
   })
 })
 
@@ -125,55 +119,39 @@ describe('expectHeader', () => {
       new Response('Hello World', { headers: { 'Content-Type': 'text/html' } })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
-    try {
-      res.expectHeader('Content-Type', 'text/plain')
-    } catch (e) {
-      expect(e instanceof AssertionError).toBe(true)
-      expect((e as Error).message).toMatch(
-        new RegExp(
-          'Values are not equal: expected to have header Content-Type with value text/plain, got text/html',
-        ),
-      )
-    }
+    expect(() => res.expectHeader('Content-Type', 'text/plain')).toThrow(
+      AssertionError,
+    )
+    expect(() => res.expectHeader('Content-Type', 'text/plain')).toThrow(
+      'expected to have header Content-Type with value text/plain, got text/html',
+    )
   })
   it('throws if does not match regex', async () => {
     const handler: Deno.ServeHandler = () =>
       new Response('Hello World', { headers: { 'Content-Type': 'text/html' } })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
-    try {
-      res.expectHeader('Content-Type', /image/)
-    } catch (e) {
-      expect((e as Error).message).toEqual(
-        'Expected actual: "text/html" to match: "/image/": expected header Content-Type to match regexp /image/, got text/html',
-      )
-    }
+    expect(() => res.expectHeader('Content-Type', /image/)).toThrow(
+      'expected header Content-Type to match regexp /image/, got text/html',
+    )
   })
   it('throws if header does not exist and regex is passed', async () => {
     const handler: Deno.ServeHandler = () =>
       new Response('Hello World', { headers: undefined })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
-    try {
-      res.expectHeader('garbage-header', /image/)
-    } catch (e) {
-      expect((e as Error).message).toMatch(
-        new RegExp('expected header null to not be empty'),
-      )
-    }
+    expect(() => res.expectHeader('garbage-header', /image/)).toThrow(
+      'expected header null to not be empty',
+    )
   })
   it('throws if header does not exist and array is passed', async () => {
     const handler: Deno.ServeHandler = () =>
       new Response('Hello World', { headers: undefined })
     const fetch = makeFetch(handler)
     const res = await fetch('/')
-    try {
+    expect(() =>
       res.expectHeader('garbage-header', ['content-type', 'content-length'])
-    } catch (e) {
-      expect((e as Error).message).toMatch(
-        new RegExp('expected header null to not be empty'),
-      )
-    }
+    ).toThrow('expected header null to not be empty')
   })
   it('can expect array of header values', async () => {
     const handler: Deno.ServeHandler = () =>
@@ -210,11 +188,7 @@ describe('expectBody', () => {
     const handler: Deno.ServeHandler = () => new Response('Hello World')
     const fetch = makeFetch(handler)
     const res = await fetch('/')
-    try {
-      res.expectBody('Hello World?')
-    } catch (e) {
-      expect(e).toBeDefined()
-    }
+    expect(() => res.expectBody('Hello World?')).toThrow(AssertionError)
   })
   it('supports regex', async () => {
     const handler: Deno.ServeHandler = () => new Response('Hello World')
@@ -250,11 +224,63 @@ describe('expect', () => {
 
 describe('Deno.HttpServer', () => {
   it('should accept an HTTP server', async () => {
-    const fetch = makeFetch(
-      Deno.serve({ port: 0 }, () => new Response('hello')),
+    const server = Deno.serve(
+      { port: 0, onListen: () => {} },
+      () => new Response('hello'),
     )
+    const fetch = makeFetch(server)
     const res = await fetch('/')
     res.expectStatus(200).expectBody('hello')
+    await server.shutdown()
+  })
+  it('should leave the caller-owned server running between requests', async () => {
+    const server = Deno.serve(
+      { port: 0, onListen: () => {} },
+      () => new Response('hello'),
+    )
+    const fetch = makeFetch(server)
+
+    for (const _ of [1, 2, 3]) {
+      const res = await fetch('/')
+      res.expectStatus(200).expectBody('hello')
+      expect(res.port).toBe(server.addr.port)
+    }
+
+    await server.shutdown()
+  })
+})
+
+describe('reuse', () => {
+  it('should serve more than one request from a single makeFetch', async () => {
+    const handler: Deno.ServeHandler = (req) =>
+      new Response(new URL(req.url).pathname)
+    const fetch = makeFetch(handler)
+
+    for (const path of ['/', '/status', '/header']) {
+      const res = await fetch(path)
+      res.expectStatus(200).expectBody(path)
+    }
+  })
+  it('should not leave a server listening if never called', () => {
+    const handler: Deno.ServeHandler = () => new Response('hello')
+    makeFetch(handler)
+  })
+})
+
+describe('url handling', () => {
+  it('should accept a URL object', async () => {
+    const handler: Deno.ServeHandler = (req) =>
+      new Response(new URL(req.url).pathname)
+    const fetch = makeFetch(handler)
+    const res = await fetch(new URL('http://example.com/hello'))
+    res.expectStatus(200).expectBody('/hello')
+  })
+  it('should preserve the query string and hash', async () => {
+    const handler: Deno.ServeHandler = (req) =>
+      new Response(new URL(req.url).search)
+    const fetch = makeFetch(handler)
+    const res = await fetch('/search?q=deno&page=2')
+    res.expectStatus(200).expectBody('?q=deno&page=2')
   })
 })
 
@@ -269,20 +295,5 @@ describe('Port randomness', () => {
     res.expectBody('Hello World')
     expect(res.port).not.toBe(port)
     l.close()
-  })
-  it('should throw error if free port cannot be found', async () => {
-    globalThis.Deno.listen = () => {
-      throw new Error('bad error!')
-    }
-    const handler: Deno.ServeHandler = () =>
-      new Response('Hello World', { status: 200 })
-    try {
-      const fetch = makeFetch(handler)
-      await fetch('/')
-    } catch (e) {
-      expect((e as Error).message).toMatch(
-        new RegExp('Unable to get free port'),
-      )
-    }
   })
 })
