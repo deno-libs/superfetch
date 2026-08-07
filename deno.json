@@ -10,7 +10,7 @@
     "test": "deno test --allow-net --allow-read --allow-write --allow-env --coverage=coverage"
   },
   "name": "@deno-libs/superfetch",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "exports": {
     ".": "./mod.ts",
     "./types": "./types.ts"
