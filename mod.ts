@@ -5,12 +5,27 @@ import type {
   MakeFetchResponse,
 } from './types.ts'
 
+/**
+ * Resolve a caller-supplied path or URL against the test server's origin.
+ *
+ * Only the path, query and hash are taken from `url` — the origin is always
+ * forced to the local test server, so `'/users?a=1'` and
+ * `new URL('http://example.com/users?a=1')` both reach the handler under test.
+ */
+const toLocalUrl = (port: number, url: string | URL) => {
+  const resolved = new URL(url, `http://localhost:${port}`)
+  resolved.protocol = 'http:'
+  resolved.hostname = 'localhost'
+  resolved.port = `${port}`
+  return resolved
+}
+
 const fetchEndpoint = async (
   port: number,
   url: string | URL,
   params?: RequestInit,
 ) => {
-  const res = await fetch(`http://localhost:${port}${url}`, params)
+  const res = await fetch(toLocalUrl(port, url), params)
   let data: unknown
   const ct = res.headers.get('Content-Type')
   if (ct === null) return { data: await res.text(), res }
@@ -21,35 +36,44 @@ const fetchEndpoint = async (
   else data = await res.arrayBuffer()
   return { res, data }
 }
-const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
-  if ('addr' in handlerOrListener) {
-    const port = handlerOrListener.addr.port
 
-    const resp = (url: URL | string = '', params?: RequestInit) => {
-      return new Promise<{ res: Response; data?: unknown }>((resolve) => {
-        setTimeout(async () => {
-          const { res, data } = await fetchEndpoint(port, url, params)
-          resolve({ res, data })
-          return handlerOrListener.shutdown()
-        })
-      })
-    }
-    return { resp, port }
-  } else {
-    const server = Deno.serve({ port: 0 }, handlerOrListener)
-    const resp = async (url: URL | string = '', params?: RequestInit) => {
-      const res = await fetchEndpoint(server.addr.port, url, params)
+type Responder = (
+  url?: URL | string,
+  params?: RequestInit,
+) => Promise<{ res: Response; data?: unknown; port: number }>
+
+const makeFetchPromise = (handlerOrListener: HandlerOrListener): Responder => {
+  // The caller created this server and owns its lifecycle, so we only borrow
+  // it — shutting it down here would break any further use of it.
+  if ('addr' in handlerOrListener) {
+    const { port } = handlerOrListener.addr
+    return async (url = '', params?: RequestInit) => ({
+      ...await fetchEndpoint(port, url, params),
+      port,
+    })
+  }
+
+  // A bare handler is ours to host. Serve it per request rather than once per
+  // `makeFetch()`, so a single instance can be reused for more than one
+  // request and an unused instance never leaves a server listening.
+  return async (url = '', params?: RequestInit) => {
+    const server = Deno.serve(
+      { port: 0, onListen: () => {} },
+      handlerOrListener,
+    )
+    const { port } = server.addr
+    try {
+      return { ...await fetchEndpoint(port, url, params), port }
+    } finally {
       await server.shutdown()
-      return res
     }
-    return { resp, port: server.addr.port }
   }
 }
 
 export const makeFetch = (h: HandlerOrListener): FetchFunction => {
-  const { resp, port } = makeFetchPromise(h)
+  const resp = makeFetchPromise(h)
   async function fetch(url: string | URL, options?: RequestInit) {
-    const { res, data } = await resp(url, options)
+    const { res, data, port } = await resp(url, options)
 
     const expectStatus = (a: number, b?: string) => {
       assertEquals(
