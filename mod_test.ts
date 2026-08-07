@@ -1,7 +1,7 @@
-import { describe, it } from 'jsr:@std/testing@0.225.3/bdd'
-import { expect } from 'jsr:@std/expect@0.224.5/expect'
+import { describe, it } from '@std/testing/bdd'
+import { expect } from '@std/expect/expect'
 import { makeFetch } from './mod.ts'
-import { AssertionError } from 'jsr:@std/assert@1.0.0/assertion-error'
+import { AssertionError } from '@std/assert/assertion-error'
 
 const tw = new TextDecoder()
 

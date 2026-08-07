@@ -24,7 +24,7 @@ const fetchEndpoint = async (
 const makeFetchPromise = (handlerOrListener: HandlerOrListener) => {
   if ('addr' in handlerOrListener) {
     const port = handlerOrListener.addr.port
-   
+
     const resp = (url: URL | string = '', params?: RequestInit) => {
       return new Promise<{ res: Response; data?: unknown }>((resolve) => {
         setTimeout(async () => {
